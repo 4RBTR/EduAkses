@@ -64,13 +64,3 @@ EduAkses adalah sebuah *unified platform* yang dirancang untuk mengatasi fragmen
 
 ---
 
-## 📅 Rencana Pengembangan
-* [cite_start]**Minggu 1**: Perencanaan konsep & Desain UI/UX[cite: 1].
-* [cite_start]**Minggu 2**: Perancangan struktur Database & Frontend awal[cite: 1].
-* [cite_start]**Minggu 3**: Implementasi fitur utama (AI Quiz, Meeting, Dashboard)[cite: 1].
-* [cite_start]**Minggu 4**: Uji coba fungsionalitas & optimasi kinerja[cite: 1].
-* [cite_start]**Minggu 5**: Finalisasi, dokumentasi, dan peluncuran[cite: 1].
-
----
-
-[cite_start]*Proyek ini dikembangkan sebagai bagian dari **Coding Camp 2026 powered by DBS Foundation**.* [cite: 1]
