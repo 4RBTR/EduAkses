@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+// ─── Enums ───────────────────────────────────────────────────────────
+
+enum Role {
+  TEACHER
+  CLASS_LEADER
+  STUDENT
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// ─── User ────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  memberships  ClassMember[]
+  assignments  Assignment[]   @relation("AssignmentCreator")
+  quizzes      Quiz[]         @relation("QuizCreator")
+  submissions  Submission[]
+  quizScores   QuizScore[]
+
+  @@map("users")
+}
+
+// ─── Class ───────────────────────────────────────────────────────────
+
+model Class {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  inviteCode  String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members         ClassMember[]
+  assignments     Assignment[]
+  quizzes         Quiz[]
+  lessonSchedules LessonSchedule[]
+  notifications   Notification[]
+
+  @@map("classes")
+}
+
+// ─── ClassMember (Join Table: User ↔ Class) ──────────────────────────
+
+model ClassMember {
+  id     String @id @default(cuid())
+  role   Role   @default(STUDENT)
+
+  // Foreign keys
+  userId  String
+  classId String
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([userId, classId])
+  @@map("class_members")
+}
+
+// ─── Assignment ──────────────────────────────────────────────────────
+
+model Assignment {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Foreign keys
+  classId   String
+  creatorId String
+
+  // Relations
+  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  creator     User         @relation("AssignmentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+// ─── Submission ──────────────────────────────────────────────────────
+
+model Submission {
+  id        String   @id @default(cuid())
+  content   String?
+  fileUrl   String?
+  grade     Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  studentId    String
+  assignmentId String
+
+  // Relations
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assignmentId])
+  @@map("submissions")
+}
+
+// ─── Quiz ────────────────────────────────────────────────────────────
+
+model Quiz {
+  id        String   @id @default(cuid())
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  classId   String
+  creatorId String
+
+  // Relations
+  class     Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  creator   User           @relation("QuizCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  quizScores QuizScore[]
+
+  @@map("quizzes")
+}
+
+// ─── QuizQuestion ────────────────────────────────────────────────────
+
+model QuizQuestion {
+  id            String     @id @default(cuid())
+  question      String
+  options       Json       // Array of answer options, e.g. ["A", "B", "C", "D"]
+  correctAnswer String
+  difficulty    Difficulty @default(MEDIUM)
+
+  // Foreign keys
+  quizId String
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+// ─── LessonSchedule ─────────────────────────────────────────────────
+
+model LessonSchedule {
+  id        String @id @default(cuid())
+  subject   String
+  dayOfWeek Int    // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime String // Format: "HH:mm" (e.g. "08:00")
+  endTime   String // Format: "HH:mm" (e.g. "09:30")
+
+  // Foreign keys
+  classId String
+
+  // Relations
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lesson_schedules")
+}
+
+// ─── Notification ───────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  createdAt DateTime @default(now())
+  
+  // Optional flag to determine if it's broad or specific
+  isRead    Boolean  @default(false)
+
+  // Foreign keys
+  classId   String
+
+  // Relations
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─── QuizScore ───────────────────────────────────────────────────────
+
+model QuizScore {
+  id        String   @id @default(cuid())
+  score     Int
+  createdAt DateTime @default(now())
+
+  // Foreign keys
+  studentId String
+  quizId    String
+
+  // Relations
+  student   User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quiz      Quiz @relation(fields: [quizId],    references: [id], onDelete: Cascade)
+
+  @@map("quiz_scores")
+}
