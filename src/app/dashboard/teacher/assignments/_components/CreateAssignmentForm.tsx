@@ -91,6 +91,19 @@ export function CreateAssignmentForm({ classes }: { classes: ClassOption[] }) {
             className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
           />
         </div>
+
+        <div className="space-y-2">
+          <label htmlFor="fileUrl" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            Lampiran File (Link GDrive/Cloud)
+          </label>
+          <input
+            id="fileUrl"
+            name="fileUrl"
+            type="url"
+            placeholder="https://drive.google.com/..."
+            className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+          />
+        </div>
       </div>
 
       <div className="pt-2">

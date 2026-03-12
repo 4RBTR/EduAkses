@@ -36,6 +36,7 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
 
   const fetchNext = async () => {
     setIsLoadingNext(true);
+    setQuestion(null); // Clear previous question
     setSelectedOption(null);
     setFeedback(null);
     
@@ -155,8 +156,11 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
       {/* Question Card */}
       <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
         {isLoadingNext && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center">
-             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="absolute inset-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-10 flex items-center justify-center">
+             <div className="flex flex-col items-center gap-3">
+               <Loader2 className="w-8 h-8 animate-spin text-primary" />
+               <p className="text-sm font-bold text-primary animate-pulse italic">Mempersiapkan Tantangan Berikutnya...</p>
+             </div>
           </div>
         )}
 

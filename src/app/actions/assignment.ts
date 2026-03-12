@@ -12,6 +12,7 @@ export async function createAssignment(formData: FormData) {
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
+  const fileUrl = formData.get("fileUrl") as string; // Teacher can provide a link or file path
   const classId = formData.get("classId") as string;
   const dueDateStr = formData.get("dueDate") as string;
 
@@ -24,6 +25,7 @@ export async function createAssignment(formData: FormData) {
       data: {
         title,
         description,
+        fileUrl,
         classId,
         creatorId: session.user.id,
         dueDate: dueDateStr ? new Date(dueDateStr) : null,
@@ -35,6 +37,48 @@ export async function createAssignment(formData: FormData) {
   } catch (error) {
     console.error("Create assignment error:", error);
     return { error: "Gagal membuat tugas." };
+  }
+}
+
+export async function submitAssignment(assignmentId: string, formData: FormData) {
+  const session = await auth();
+  if (!session?.user) return { error: "Silakan login." };
+
+  const content = formData.get("content") as string;
+  const fileUrl = formData.get("fileUrl") as string;
+
+  try {
+    await prisma.submission.upsert({
+      where: {
+        studentId_assignmentId: {
+          studentId: session.user.id,
+          assignmentId
+        }
+      },
+      update: {
+        content,
+        fileUrl,
+        updatedAt: new Date()
+      },
+      create: {
+        studentId: session.user.id,
+        assignmentId,
+        content,
+        fileUrl
+      }
+    });
+
+    // Award XP (e.g., 50 points for submission)
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { points: { increment: 50 } }
+    });
+
+    revalidatePath(`/dashboard/class/${assignmentId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Submit assignment error:", error);
+    return { error: "Gagal mengirimkan tugas." };
   }
 }
 
@@ -78,4 +122,27 @@ export async function getTeacherAssignments() {
       createdAt: "desc",
     },
   });
+}
+
+export async function gradeSubmission(submissionId: string, grade: number, teacherComment?: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "TEACHER") {
+    return { error: "Akses ditolak. Hanya guru yang dapat menilai." };
+  }
+
+  try {
+    const submission = await prisma.submission.update({
+      where: { id: submissionId },
+      data: {
+        grade,
+        teacherComment,
+      },
+    });
+
+    revalidatePath(`/dashboard/teacher/class/${submission.assignmentId}/assignment/${submission.assignmentId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Grade submission error:", error);
+    return { error: "Gagal memberikan nilai." };
+  }
 }

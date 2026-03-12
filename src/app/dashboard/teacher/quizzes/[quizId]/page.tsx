@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AddQuestionForm } from "./_components/AddQuestionForm";
+import { BulkQuestionForm } from "./_components/BulkQuestionForm";
 import { DeleteQuestionButton } from "./_components/DeleteQuestionButton";
 import { ArrowLeft, BrainCircuit } from "lucide-react";
 import Link from "next/link";
@@ -54,12 +55,13 @@ export default async function ManageQuestionsPage(props: PageProps) {
       </div>
 
       <AddQuestionForm quizId={quiz.id} />
+      <BulkQuestionForm quizId={quiz.id} />
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
+        <div className="text-lg font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
           <BrainCircuit className="w-5 h-5 text-primary" />
           Bank Soal ({quiz.questions.length})
-        </h2>
+        </div>
         
         {quiz.questions.length === 0 ? (
           <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-8 text-center shadow-sm">

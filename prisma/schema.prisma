@@ -33,6 +33,7 @@ model User {
   password  String
   role      Role     @default(STUDENT)
   avatar    String?
+  points    Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -92,6 +93,7 @@ model Assignment {
   id          String    @id @default(cuid())
   title       String
   description String?
+  fileUrl     String?
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -115,8 +117,9 @@ model Submission {
   content   String?
   fileUrl   String?
   grade     Float?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  teacherComment String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Foreign keys
   studentId    String

@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { getStudentClasses } from "@/app/actions/class";
 import JoinClassModal from "@/components/dashboard/JoinClassModal";
 import { 
@@ -21,7 +22,40 @@ export default async function StudentDashboard() {
     redirect("/login");
   }
 
-  const classes = await getStudentClasses();
+  const [classes, user] = await Promise.all([
+    getStudentClasses(),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { points: true }
+    })
+  ]);
+
+  // Fetch upcoming assignments and schedules from all joined classes
+  const classIds = classes.map(c => c.id);
+  const [deadlines, schedules, notifications] = await Promise.all([
+    prisma.assignment.findMany({
+      where: {
+        classId: { in: classIds },
+        dueDate: { gte: new Date() }
+      },
+      include: { class: true },
+      orderBy: { dueDate: "asc" },
+      take: 3
+    }),
+    prisma.lessonSchedule.findMany({
+      where: {
+        classId: { in: classIds },
+        dayOfWeek: new Date().getDay()
+      },
+      include: { class: true },
+      orderBy: { startTime: "asc" }
+    }),
+    prisma.notification.findMany({
+      where: { classId: { in: classIds } },
+      orderBy: { createdAt: "desc" },
+      take: 3
+    })
+  ]);
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -77,7 +111,7 @@ export default async function StudentDashboard() {
            </div>
            <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Poin XP</p>
-              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">1,250</p>
+              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{user?.points.toLocaleString() || 0}</p>
            </div>
         </div>
       </div>
@@ -143,38 +177,79 @@ export default async function StudentDashboard() {
 
         {/* Learning Activity Sidebar */}
         <div className="space-y-6">
-           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Papan Pengumuman</h2>
+           <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              Papan Pengumuman
+           </h2>
            <div className="space-y-4">
-              <div className="p-5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-lg space-y-3">
-                 <p className="text-sm font-bold flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-white" />
-                    Kuis Adaptif Baru!
-                 </p>
-                 <p className="text-xs opacity-90 leading-relaxed uppercase tracking-wide">
-                    Selesaikan kuis untuk meningkatkan level kesulitan dan raih skor tertinggi di papan peringkat.
-                 </p>
-                 <button className="w-full bg-white/20 hover:bg-white/30 py-2 rounded-lg text-xs font-bold transition-colors">
-                    Mulai Belajar Sekarang
-                 </button>
+              {/* Today's Schedule */}
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
+                 <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
+                    Jadwal Hari Ini
+                    <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-500">
+                      {new Date().toLocaleDateString("id-ID", { weekday: 'long' })}
+                    </span>
+                 </h4>
+                 <div className="space-y-3">
+                    {schedules.length === 0 ? (
+                      <p className="text-[10px] text-zinc-400 italic">Tidak ada jadwal hari ini.</p>
+                    ) : (
+                      schedules.map((s) => (
+                        <div key={s.id} className="flex items-center gap-3">
+                           <div className="w-1.5 h-8 bg-primary rounded-full"></div>
+                           <div className="flex-1">
+                              <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{s.subject}</p>
+                              <p className="text-[10px] text-zinc-500">{s.startTime} - {s.endTime} • {s.class.name}</p>
+                           </div>
+                        </div>
+                      ))
+                    )}
+                 </div>
               </div>
 
+              {/* Reminders / Notifications */}
+              <div className="p-5 bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-lg space-y-4">
+                 <p className="text-sm font-bold flex items-center gap-2">
+                    <Star className="w-4 h-4 fill-white" />
+                    Catatan Ketua Kelas
+                 </p>
+                 <div className="space-y-3">
+                    {notifications.length === 0 ? (
+                       <p className="text-xs opacity-70 italic">Belum ada pengumuman baru.</p>
+                    ) : (
+                       notifications.map((n) => (
+                          <div key={n.id} className="pb-2 border-b border-white/10 last:border-0">
+                             <p className="text-xs font-bold leading-tight">{n.title}</p>
+                             <p className="text-[10px] opacity-80 mt-1 line-clamp-2">{n.message}</p>
+                          </div>
+                       ))
+                    )}
+                 </div>
+              </div>
+
+              {/* Deadlines */}
               <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 shadow-sm">
                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Batas Waktu Terdekat</h4>
                  <div className="space-y-3">
-                    <div className="flex items-center border-l-4 border-red-500 pl-3 py-1">
-                       <div className="flex-1">
-                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Tugas Matematika 1</p>
-                          <p className="text-[10px] text-zinc-500">2 Jam Lagi</p>
-                       </div>
-                       <ArrowRight className="w-4 h-4 text-zinc-300" />
-                    </div>
-                    <div className="flex items-center border-l-4 border-yellow-500 pl-3 py-1">
-                       <div className="flex-1">
-                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Kuis Kimia</p>
-                          <p className="text-[10px] text-zinc-500">Besok Pagi</p>
-                       </div>
-                       <ArrowRight className="w-4 h-4 text-zinc-300" />
-                    </div>
+                    {deadlines.length === 0 ? (
+                      <p className="text-[10px] text-zinc-400 italic">Tidak ada tugas mendesak.</p>
+                    ) : (
+                      deadlines.map((d) => (
+                        <Link 
+                          href={`/dashboard/class/${d.classId}`} 
+                          key={d.id} 
+                          className="flex items-center border-l-4 border-red-500 pl-3 py-1 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                        >
+                          <div className="flex-1">
+                             <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{d.title}</p>
+                             <p className="text-[10px] text-zinc-500">
+                                {d.dueDate ? new Date(d.dueDate).toLocaleDateString("id-ID") : "-"}
+                             </p>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-zinc-300" />
+                        </Link>
+                      ))
+                    )}
                  </div>
               </div>
            </div>

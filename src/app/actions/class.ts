@@ -158,3 +158,83 @@ export async function getStudentClasses() {
   });
 }
 
+export async function getClassDetail(classId: string) {
+  const session = await auth();
+  if (!session?.user) return null;
+
+  const isTeacher = session.user.role === "TEACHER";
+
+  return await prisma.class.findUnique({
+    where: { id: classId },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+              role: true,
+              points: true,
+            },
+          },
+        },
+      },
+      assignments: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          submissions: isTeacher 
+            ? { select: { id: true, studentId: true } } // Just pointers for count/status
+            : { where: { studentId: session.user.id } }
+        }
+      },
+      quizzes: {
+        include: {
+          _count: { select: { questions: true } },
+          quizScores: isTeacher
+            ? { select: { id: true, studentId: true } }
+            : { where: { studentId: session.user.id } }
+        },
+        orderBy: { createdAt: "desc" }
+      },
+      lessonSchedules: {
+        orderBy: { dayOfWeek: "asc" }
+      }
+    }
+  });
+}
+export async function leaveClass(classId: string) {
+  const session = await auth();
+  if (!session?.user) return { error: "Silakan login." };
+
+  try {
+    const membership = await prisma.classMember.findUnique({
+      where: {
+        userId_classId: {
+          userId: session.user.id,
+          classId: classId
+        }
+      }
+    });
+
+    if (membership?.role === "TEACHER") {
+      return { error: "Guru tidak dapat keluar dari kelas yang mereka kelola." };
+    }
+
+    await prisma.classMember.delete({
+      where: {
+        userId_classId: {
+          userId: session.user.id,
+          classId: classId
+        }
+      }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Leave class error:", error);
+    return { error: "Gagal keluar dari kelas." };
+  }
+}

@@ -22,7 +22,10 @@ export default async function StudentTasksPage() {
       }
     },
     include: {
-      class: true
+      class: true,
+      submissions: {
+        where: { studentId: session.user.id }
+      }
     },
     orderBy: {
       dueDate: "asc"
@@ -57,22 +60,30 @@ export default async function StudentTasksPage() {
           <div className="columns-1 md:columns-2 gap-6 space-y-6">
             {assignments.map(assignment => {
               const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date();
+              const submission = (assignment as any).submissions?.[0];
+              const hasSubmitted = !!submission;
+              const grade = submission?.grade;
               
               return (
-                <div key={assignment.id} className="break-inside-avoid bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all group">
+                <div key={assignment.id} className="break-inside-avoid bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all group relative">
                   <div className="flex justify-between items-start mb-4">
                      <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 text-[10px] font-bold rounded-full uppercase tracking-wider">
                         {assignment.class.name}
                      </span>
-                     {isOverdue ? (
+                     {hasSubmitted ? (
+                       <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Dikumpulkan {grade !== null && grade !== undefined ? `(${grade}/100)` : ""}
+                       </span>
+                     ) : isOverdue ? (
                        <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full animate-pulse">
                           <AlertCircle className="w-3 h-3" />
                           Terlewat
                        </span>
                      ) : (
-                       <span className="flex items-center gap-1 text-[10px] font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Aktif
+                       <span className="flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full">
+                          <Clock className="w-3 h-3" />
+                          Belum Dikumpulkan
                        </span>
                      )}
                   </div>
@@ -95,11 +106,13 @@ export default async function StudentTasksPage() {
                         })
                       ) : "No Deadline"}
                     </div>
-                    
-                    <button className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                    <Link 
+                      href={`/dashboard/class/${assignment.classId}/assignment/${assignment.id}`}
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                    >
                        Detail Tugas
                        <Calendar className="w-3 h-3" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               );

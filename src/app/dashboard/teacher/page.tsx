@@ -102,7 +102,7 @@ export default async function TeacherDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {classes.map((cls) => (
                 <Link 
-                  href={`/dashboard/teacher/class/${cls.id}`} 
+                  href={`/dashboard/class/${cls.id}`} 
                   key={cls.id}
                   className="group relative bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300"
                 >
