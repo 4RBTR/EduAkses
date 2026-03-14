@@ -34,14 +34,15 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchNext = async () => {
+  const fetchNext = async (currentAnsweredIds?: string[]) => {
     setIsLoadingNext(true);
     setQuestion(null); // Clear previous question
     setSelectedOption(null);
     setFeedback(null);
     
     try {
-      const result = await getNextQuestion(quizId, currentDifficulty, wasCorrectLastTime, answeredIds);
+      const ids = currentAnsweredIds || answeredIds;
+      const result = await getNextQuestion(quizId, currentDifficulty, wasCorrectLastTime, ids);
       if (result && result.isFinished) {
         setIsFinished(true);
       } else if (result) {
@@ -74,11 +75,12 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
         }
 
         // Add to answered list so it doesn't repeat
-        setAnsweredIds(prev => [...prev, question.id]);
+        const newAnsweredIds = [...answeredIds, question.id];
+        setAnsweredIds(newAnsweredIds);
 
         // Small delay so user sees feedback
         setTimeout(() => {
-          fetchNext();
+          fetchNext(newAnsweredIds);
         }, 1500);
 
       } catch (error) {

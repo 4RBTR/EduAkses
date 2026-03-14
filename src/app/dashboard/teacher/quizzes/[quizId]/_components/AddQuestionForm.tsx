@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { PlusCircle, Loader2 } from "lucide-react";
 import { addQuestion } from "@/app/actions/teacher-quiz";
 import { useRef } from "react";
+import { toast } from "sonner";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -28,9 +29,10 @@ export function AddQuestionForm({ quizId }: { quizId: string }) {
     try {
       await addQuestion(formData);
       formRef.current?.reset();
+      toast.success("Pertanyaan berhasil ditambahkan!");
     } catch (error) {
       console.error(error);
-      alert("Gagal menambahkan soal.");
+      toast.error("Gagal menambahkan soal.");
     }
   };
 

@@ -24,6 +24,12 @@ enum Difficulty {
   HARD
 }
 
+enum ExtensionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ─── User ────────────────────────────────────────────────────────────
 
 model User {
@@ -43,6 +49,7 @@ model User {
   quizzes      Quiz[]         @relation("QuizCreator")
   submissions  Submission[]
   quizScores   QuizScore[]
+  extensions   AssignmentExtension[]
 
   @@map("users")
 }
@@ -104,8 +111,9 @@ model Assignment {
 
   // Relations
   class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
-  creator     User         @relation("AssignmentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creator     User                  @relation("AssignmentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   submissions Submission[]
+  extensions  AssignmentExtension[]
 
   @@map("assignments")
 }
@@ -203,6 +211,7 @@ model Notification {
   
   // Optional flag to determine if it's broad or specific
   isRead    Boolean  @default(false)
+  expiresAt DateTime?
 
   // Foreign keys
   classId   String
@@ -229,4 +238,23 @@ model QuizScore {
   quiz      Quiz @relation(fields: [quizId],    references: [id], onDelete: Cascade)
 
   @@map("quiz_scores")
+}
+
+model AssignmentExtension {
+  id           String          @id @default(cuid())
+  reason       String
+  status       ExtensionStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  // Foreign keys
+  studentId    String
+  assignmentId String
+
+  // Relations
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assignmentId])
+  @@map("assignment_extensions")
 }

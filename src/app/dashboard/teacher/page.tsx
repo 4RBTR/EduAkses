@@ -10,7 +10,8 @@ import {
   ArrowRight, 
   ChevronRight,
   ClipboardList,
-  GraduationCap
+  GraduationCap,
+  MonitorPlay
 } from "lucide-react";
 import Link from "next/link";
 
@@ -73,6 +74,21 @@ export default async function TeacherDashboard() {
              {classes.reduce((acc, c) => acc + c._count.quizzes, 0)}
           </div>
         </div>
+        <Link 
+          href="/dashboard/meet"
+          className="p-6 bg-linear-to-br from-indigo-600 to-violet-700 rounded-2xl border border-indigo-500/20 shadow-lg group hover:scale-[1.02] transition-all"
+        >
+          <div className="flex items-center gap-4 mb-2">
+            <div className="p-2 bg-white/20 text-white rounded-lg group-hover:bg-white/30 transition-colors">
+              <MonitorPlay className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-bold text-white/80 uppercase tracking-widest">Zoomeet</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-xl font-bold text-white">Video Conference</div>
+            <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </div>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

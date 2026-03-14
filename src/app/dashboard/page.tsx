@@ -14,6 +14,8 @@ import {
   Star
 } from "lucide-react";
 import Link from "next/link";
+import { DeleteNotificationButton } from "@/components/dashboard/DeleteNotificationButton";
+import { DeleteScheduleButton } from "@/components/dashboard/DeleteScheduleButton";
 
 export default async function StudentDashboard() {
   const session = await auth();
@@ -51,11 +53,19 @@ export default async function StudentDashboard() {
       orderBy: { startTime: "asc" }
     }),
     prisma.notification.findMany({
-      where: { classId: { in: classIds } },
+      where: { 
+        classId: { in: classIds },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } }
+        ]
+      } as any,
       orderBy: { createdAt: "desc" },
-      take: 3
+      take: 5
     })
   ]);
+
+  const canManageReminders = session.user.role === "CLASS_LEADER" || session.user.role === "TEACHER";
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -195,12 +205,13 @@ export default async function StudentDashboard() {
                       <p className="text-[10px] text-zinc-400 italic">Tidak ada jadwal hari ini.</p>
                     ) : (
                       schedules.map((s) => (
-                        <div key={s.id} className="flex items-center gap-3">
+                        <div key={s.id} className="flex items-center gap-3 group/item">
                            <div className="w-1.5 h-8 bg-primary rounded-full"></div>
                            <div className="flex-1">
                               <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{s.subject}</p>
                               <p className="text-[10px] text-zinc-500">{s.startTime} - {s.endTime} • {s.class.name}</p>
                            </div>
+                           {session.user.role === "CLASS_LEADER" && <DeleteScheduleButton scheduleId={s.id} />}
                         </div>
                       ))
                     )}
@@ -218,9 +229,12 @@ export default async function StudentDashboard() {
                        <p className="text-xs opacity-70 italic">Belum ada pengumuman baru.</p>
                     ) : (
                        notifications.map((n) => (
-                          <div key={n.id} className="pb-2 border-b border-white/10 last:border-0">
-                             <p className="text-xs font-bold leading-tight">{n.title}</p>
-                             <p className="text-[10px] opacity-80 mt-1 line-clamp-2">{n.message}</p>
+                          <div key={n.id} className="pb-2 border-b border-white/10 last:border-0 flex items-start justify-between gap-2 group/msg">
+                             <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold leading-tight truncate">{n.title}</p>
+                                <p className="text-[10px] opacity-80 mt-1 line-clamp-2">{n.message}</p>
+                             </div>
+                             {canManageReminders && <DeleteNotificationButton notificationId={n.id} />}
                           </div>
                        ))
                     )}

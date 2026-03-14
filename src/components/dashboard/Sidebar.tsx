@@ -32,12 +32,15 @@ export function Sidebar({ role }: SidebarProps) {
       case "TEACHER":
         return [
           { name: "Class Overview", href: "/dashboard/teacher", icon: Users },
+          { name: "Kalender Belajar", href: "/dashboard/calendar", icon: Calendar },
           { name: "Assignment Control", href: "/dashboard/teacher/assignments", icon: ClipboardList },
           { name: "Quiz Manager", href: "/dashboard/teacher/quizzes", icon: Puzzle },
+          { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
         ];
       case "CLASS_LEADER":
         return [
           { name: "Komando Dashboard", href: "/dashboard/leader", icon: LayoutDashboard },
+          { name: "Kalender Belajar", href: "/dashboard/calendar", icon: Calendar },
           { name: "Jadwal & Reminders", href: "/dashboard/leader/schedule", icon: Calendar },
           { name: "Tugas Saya", href: "/dashboard/tasks", icon: ClipboardList },
           { name: "Kuis Adaptif", href: "/dashboard/quizzes", icon: Puzzle },
@@ -47,6 +50,7 @@ export function Sidebar({ role }: SidebarProps) {
       default:
         return [
           { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+          { name: "Kalender Belajar", href: "/dashboard/calendar", icon: Calendar },
           { name: "Tugas Saya", href: "/dashboard/tasks", icon: ClipboardList },
           { name: "Kuis Adaptif", href: "/dashboard/quizzes", icon: Puzzle },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },

@@ -3,6 +3,7 @@
 import { useTransition, useRef } from "react";
 import { createAssignment } from "@/app/actions/assignment";
 import { PlusCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ClassOption {
   id: string;
@@ -20,9 +21,10 @@ export function CreateAssignmentForm({ classes }: { classes: ClassOption[] }) {
     startTransition(async () => {
       const result = await createAssignment(formData);
       if (result?.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
         formRef.current?.reset();
+        toast.success("Tugas berhasil diterbitkan!");
       }
     });
   };

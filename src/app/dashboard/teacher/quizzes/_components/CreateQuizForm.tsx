@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { PlusCircle, Loader2 } from "lucide-react";
 import { createQuiz } from "@/app/actions/teacher-quiz";
 import { useRef } from "react";
+import { toast } from "sonner";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -32,9 +33,10 @@ export function CreateQuizForm({ classes }: { classes: ClassOption[] }) {
     try {
       await createQuiz(formData);
       formRef.current?.reset();
+      toast.success("Kuis berhasil dibuat!");
     } catch (error) {
       console.error(error);
-      alert("Gagal membuat kuis.");
+      toast.error("Gagal membuat kuis.");
     }
   };
 

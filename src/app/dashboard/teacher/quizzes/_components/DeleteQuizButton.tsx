@@ -3,21 +3,33 @@
 import { useTransition } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteQuiz } from "@/app/actions/teacher-quiz";
+import { toast } from "sonner";
 
 export function DeleteQuizButton({ quizId }: { quizId: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (confirm("Apakah Anda yakin ingin menghapus kuis ini? Semua soal berserta nilai kuis siswa terkait akan ikut terhapus secara permanen.")) {
-      startTransition(async () => {
-        try {
-          await deleteQuiz(quizId);
-        } catch (error) {
-          console.error(error);
-          alert("Gagal menghapus kuis.");
+    toast.warning("Hapus kuis ini?", {
+      description: "Semua soal dan nilai kuis siswa terkait akan dihapus permanen.",
+      action: {
+        label: "Hapus",
+        onClick: () => {
+          startTransition(async () => {
+            try {
+              await deleteQuiz(quizId);
+              toast.success("Kuis berhasil dihapus");
+            } catch (error) {
+              console.error(error);
+              toast.error("Gagal menghapus kuis.");
+            }
+          });
         }
-      });
-    }
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {}
+      }
+    });
   };
 
   return (

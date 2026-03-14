@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { gradeSubmission } from "@/app/actions/grading";
 import { Loader2, CheckCircle, Save } from "lucide-react";
+import { toast } from "sonner";
 
 interface GradeSubmissionFormProps {
   submissionId: string;
@@ -18,15 +19,16 @@ export function GradeSubmissionForm({ submissionId, initialGrade, initialComment
 
   const handleGrade = async () => {
     const numGrade = parseFloat(grade);
-    if (isNaN(numGrade)) return alert("Masukkan nilai yang valid (0-100)");
+    if (isNaN(numGrade)) return toast.error("Masukkan nilai yang valid (0-100)");
 
     startTransition(async () => {
       const result = await gradeSubmission(submissionId, numGrade, comment);
       if (result.success) {
         setSuccess(true);
+        toast.success("Nilai berhasil disimpan!");
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        alert(result.error);
+        toast.error(result.error);
       }
     });
   };

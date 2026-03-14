@@ -3,21 +3,33 @@
 import { useTransition } from "react";
 import { deleteAssignment } from "@/app/actions/assignment";
 import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function DeleteAssignmentButton({ assignmentId }: { assignmentId: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (confirm("Apakah Anda yakin ingin menghapus tugas ini secara permanen?")) {
-      startTransition(async () => {
-        try {
-          await deleteAssignment(assignmentId);
-        } catch (error) {
-          console.error(error);
-          alert("Gagal menghapus tugas.");
+    toast.warning("Hapus tugas ini?", {
+      description: "Tindakan ini akan menghapus tugas secara permanen.",
+      action: {
+        label: "Hapus",
+        onClick: () => {
+          startTransition(async () => {
+            try {
+              await deleteAssignment(assignmentId);
+              toast.success("Tugas berhasil dihapus");
+            } catch (error) {
+              console.error(error);
+              toast.error("Gagal menghapus tugas.");
+            }
+          });
         }
-      });
-    }
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {}
+      }
+    });
   };
 
   return (

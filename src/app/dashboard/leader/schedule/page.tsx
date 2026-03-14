@@ -1,9 +1,11 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { ScheduleForm } from "./_components/ScheduleForm";
+import { LeaderManagement } from "@/components/dashboard/LeaderManagement";
 import { ReminderButton } from "./_components/ReminderButton";
-import { Calendar, Clock, BookOpen, AlertCircle } from "lucide-react";
+import { DeleteScheduleButton } from "@/components/dashboard/DeleteScheduleButton";
+import { DeleteNotificationButton } from "@/components/dashboard/DeleteNotificationButton";
+import { Calendar, Clock, BookOpen, AlertCircle, Bell } from "lucide-react";
 
 const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -41,14 +43,21 @@ export default async function LeaderSchedulePage() {
   });
 
   // Fetch Assignments with due dates coming up
-  const assignments = await prisma.assignment.findMany({
-    where: { 
-      classId,
-      dueDate: { gte: new Date() } // Future assignments
-    },
-    orderBy: { dueDate: "asc" },
-    take: 5
-  });
+  const [assignments, notifications] = await Promise.all([
+    prisma.assignment.findMany({
+      where: { 
+        classId,
+        dueDate: { gte: new Date() } // Future assignments
+      },
+      orderBy: { dueDate: "asc" },
+      take: 5
+    }),
+    prisma.notification.findMany({
+      where: { classId },
+      orderBy: { createdAt: "desc" },
+      take: 10
+    })
+  ]);
 
   return (
     <div className="space-y-8">
@@ -62,7 +71,7 @@ export default async function LeaderSchedulePage() {
       </div>
 
       {/* Schedule Creation Form */}
-      <ScheduleForm />
+      <LeaderManagement classId={classId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Schedule List (Spans 2 columns on large screens) */}
@@ -80,12 +89,13 @@ export default async function LeaderSchedulePage() {
                     <th className="px-4 py-3">Hari</th>
                     <th className="px-4 py-3">Waktu</th>
                     <th className="px-4 py-3">Mata Pelajaran</th>
+                    <th className="px-4 py-3 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                   {schedules.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-4 py-8 text-center text-zinc-500">
+                      <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
                         Belum ada jadwal yang ditambahkan.
                       </td>
                     </tr>
@@ -107,6 +117,9 @@ export default async function LeaderSchedulePage() {
                             {schedule.subject}
                           </div>
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <DeleteScheduleButton scheduleId={schedule.id} />
+                        </td>
                       </tr>
                     ))
                   )}
@@ -117,45 +130,73 @@ export default async function LeaderSchedulePage() {
         </div>
 
         {/* Assignments & Reminders */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-zinc-400" />
-            <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Tugas Terdekat</h2>
+        <div className="space-y-8">
+          {/* Assignments */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-zinc-400" />
+              <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Tugas Terdekat</h2>
+            </div>
+            <div className="flex flex-col gap-3">
+              {assignments.length === 0 ? (
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center shadow-sm">
+                  <p className="text-sm text-zinc-500">Tidak ada tugas yang mendekati deadline.</p>
+                </div>
+              ) : (
+                assignments.map((assignment) => (
+                  <div 
+                    key={assignment.id}
+                    className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-3"
+                  >
+                    <div>
+                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
+                        {assignment.title}
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString("id-ID", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        }) : "Tanpa batas waktu"}
+                      </p>
+                    </div>
+                    <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
+                      <ReminderButton assignmentId={assignment.id} />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {assignments.length === 0 ? (
-              <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center shadow-sm">
-                <p className="text-sm text-zinc-500">Tidak ada tugas yang mendekati deadline.</p>
-              </div>
-            ) : (
-              assignments.map((assignment) => (
-                <div 
-                  key={assignment.id}
-                  className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-3"
-                >
-                  <div>
-                    <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
-                      {assignment.title}
-                    </h3>
-                    <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString("id-ID", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric"
-                      }) : "Tanpa batas waktu"}
-                    </p>
-                  </div>
-                  
-                  {/* Reminder Action */}
-                  <div className="mt-auto pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
-                    <ReminderButton assignmentId={assignment.id} />
-                  </div>
+          {/* Announcements Management */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-zinc-400" />
+              <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">Kelola Pengumuman</h2>
+            </div>
+            <div className="flex flex-col gap-3">
+              {notifications.length === 0 ? (
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 text-center shadow-sm">
+                  <p className="text-sm text-zinc-500">Belum ada pengumuman.</p>
                 </div>
-              ))
-            )}
+              ) : (
+                notifications.map((n) => (
+                  <div 
+                    key={n.id}
+                    className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl flex items-start justify-between gap-4 shadow-sm"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">{n.title}</h3>
+                      <p className="text-xs text-zinc-500 line-clamp-2 mt-1">{n.message}</p>
+                    </div>
+                    <DeleteNotificationButton notificationId={n.id} />
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { CreateAssignmentForm } from "./_components/CreateAssignmentForm";
 import { getTeacherAssignments } from "@/app/actions/assignment";
-import { ClipboardList, Calendar, BookOpen, Clock } from "lucide-react";
+import { ClipboardList, Calendar, BookOpen, Clock, Users } from "lucide-react";
 import { DeleteAssignmentButton } from "./_components/DeleteAssignmentButton";
+import { EditAssignmentModal } from "./_components/EditAssignmentModal";
+import { ExtensionRequestList } from "./_components/ExtensionRequestList";
 
 export default async function TeacherAssignmentsPage() {
   const session = await auth();
@@ -21,7 +23,26 @@ export default async function TeacherAssignmentsPage() {
   const classOptions = taughtClasses.map(m => ({ id: m.class.id, name: m.class.name }));
 
   // Fetch current assignments
-  const assignments = await getTeacherAssignments();
+  const [assignments, extensionRequests] = await Promise.all([
+    getTeacherAssignments(),
+    prisma.assignmentExtension.findMany({
+      where: {
+        status: "PENDING",
+        assignment: {
+          creatorId: session.user.id
+        }
+      },
+      include: {
+        student: { select: { name: true } },
+        assignment: {
+          include: {
+            class: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    }) as any
+  ]);
 
   return (
     <div className="space-y-8 p-4 md:p-0">
@@ -35,6 +56,15 @@ export default async function TeacherAssignmentsPage() {
       </div>
 
       <CreateAssignmentForm classes={classOptions} />
+
+      {/* Extension Requests Section */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
+           <Clock className="w-5 h-5 text-indigo-500" />
+           Permintaan Dispensasi (Minto Waktu)
+        </h2>
+        <ExtensionRequestList requests={extensionRequests} />
+      </div>
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
@@ -86,6 +116,7 @@ export default async function TeacherAssignmentsPage() {
                 </div>
 
                 <div className="flex items-center gap-3 border-t md:border-t-0 pt-4 md:pt-0 border-zinc-100 dark:border-zinc-800">
+                  <EditAssignmentModal assignment={assignment} />
                   <DeleteAssignmentButton assignmentId={assignment.id} />
                 </div>
               </div>

@@ -3,21 +3,32 @@
 import { useTransition } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteQuestion } from "@/app/actions/teacher-quiz";
+import { toast } from "sonner";
 
 export function DeleteQuestionButton({ questionId }: { questionId: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (confirm("Hapus soal ini?")) {
-      startTransition(async () => {
-        try {
-          await deleteQuestion(questionId);
-        } catch (error) {
-          console.error(error);
-          alert("Gagal menghapus soal.");
+    toast.warning("Hapus soal ini?", {
+      action: {
+        label: "Hapus",
+        onClick: () => {
+          startTransition(async () => {
+            try {
+              await deleteQuestion(questionId);
+              toast.success("Soal berhasil dihapus");
+            } catch (error) {
+              console.error(error);
+              toast.error("Gagal menghapus soal.");
+            }
+          });
         }
-      });
-    }
+      },
+      cancel: {
+        label: "Batal",
+        onClick: () => {}
+      }
+    });
   };
 
   return (

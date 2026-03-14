@@ -11,13 +11,16 @@ import {
   FileText,
   PlayCircle,
   CheckCircle2,
-  ArrowLeft
+  ArrowLeft,
+  Bell
 } from "lucide-react";
 import Link from "next/link";
 import { SubmitAssignmentModal } from "./_components/SubmitAssignmentModal";
 import { CopyInviteCode } from "./_components/CopyInviteCode";
 import { LeaveClassButton } from "./_components/LeaveClassButton";
-import { LeaderManagement } from "./_components/LeaderManagement";
+import { LeaderManagement } from "@/components/dashboard/LeaderManagement";
+import { DeleteScheduleButton } from "@/components/dashboard/DeleteScheduleButton";
+import { DeleteNotificationButton } from "@/components/dashboard/DeleteNotificationButton";
 
 interface PageProps {
   params: Promise<{
@@ -32,11 +35,11 @@ export default async function ClassDetailPage(props: PageProps) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const cls = await getClassDetail(classId);
+  const cls = await getClassDetail(classId) as any;
   if (!cls) notFound();
 
   // Check if user is member
-  const isMember = cls.members.some(m => m.user.id === session.user.id);
+  const isMember = cls.members.some((m: any) => m.user.id === session.user.id);
   if (!isMember) {
     return (
       <div className="p-8 text-center space-y-4">
@@ -64,7 +67,7 @@ export default async function ClassDetailPage(props: PageProps) {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="inline-flex px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest">
-                {cls.members.find(m => m.role === "TEACHER")?.user.name || "Guru Pengajar"}
+                {cls.members.find((m: any) => m.role === "TEACHER")?.user.name || "Guru Pengajar"}
               </div>
               {session.user.role === "TEACHER" && (
                 <CopyInviteCode code={cls.inviteCode} />
@@ -102,7 +105,7 @@ export default async function ClassDetailPage(props: PageProps) {
                   Belum ada tugas yang diberikan.
                 </div>
               ) : (
-                cls.assignments.map((assignment) => {
+                cls.assignments.map((assignment: any) => {
                   const mySubmission = assignment.submissions[0] as any;
                   const submissionCount = assignment.submissions.length;
                   
@@ -151,6 +154,36 @@ export default async function ClassDetailPage(props: PageProps) {
           </section>
 
 
+          {/* Announcements Section */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold flex items-center gap-3">
+              <Bell className="w-6 h-6 text-yellow-500" />
+              Pengumuman Kelas
+            </h2>
+            <div className="space-y-4">
+              {cls.notifications.length === 0 ? (
+                <div className="p-10 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl text-center text-zinc-400">
+                  Belum ada pengumuman di kelas ini.
+                </div>
+              ) : (
+                cls.notifications.map((n: any) => (
+                  <div key={n.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl flex items-start justify-between gap-4 shadow-sm">
+                    <div className="space-y-1">
+                      <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{n.title}</h3>
+                      <p className="text-sm text-zinc-500">{n.message}</p>
+                      <p className="text-[10px] text-zinc-400">
+                        Diposting pada: {new Date(n.createdAt).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
+                    { (session.user.role === "TEACHER" || session.user.role === "CLASS_LEADER") && (
+                      <DeleteNotificationButton notificationId={n.id} />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
           {/* Quizzes Section */}
           <section className="space-y-4">
             <h2 className="text-xl font-bold flex items-center gap-3">
@@ -163,7 +196,7 @@ export default async function ClassDetailPage(props: PageProps) {
                   Belum ada kuis tersedia.
                 </div>
               ) : (
-                cls.quizzes.map((quiz) => (
+                cls.quizzes.map((quiz: any) => (
                   <div key={quiz.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl space-y-4 shadow-sm">
                     <div className="flex justify-between items-start">
                       <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{quiz.title}</h3>
@@ -207,16 +240,21 @@ export default async function ClassDetailPage(props: PageProps) {
               {cls.lessonSchedules.length === 0 ? (
                 <p className="text-xs text-zinc-500 italic">Belum ada jadwal yang diatur oleh Ketua Kelas.</p>
               ) : (
-                cls.lessonSchedules.map((schedule) => (
-                  <div key={schedule.id} className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                cls.lessonSchedules.map((schedule: any) => (
+                  <div key={schedule.id} className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 group/schedule">
                     <div>
                       <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{schedule.subject}</p>
                       <p className="text-[10px] text-zinc-400 font-medium tracking-wide uppercase">
                         {["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][schedule.dayOfWeek]}
                       </p>
                     </div>
-                    <div className="text-xs font-black text-primary">
-                      {schedule.startTime} - {schedule.endTime}
+                    <div className="flex items-center gap-3">
+                      <div className="text-xs font-black text-primary">
+                        {schedule.startTime} - {schedule.endTime}
+                      </div>
+                      {session.user.role === "CLASS_LEADER" && (
+                        <DeleteScheduleButton scheduleId={schedule.id} />
+                      )}
                     </div>
                   </div>
                 ))
@@ -244,7 +282,7 @@ export default async function ClassDetailPage(props: PageProps) {
               </Link>
             </div>
             <div className="flex flex-wrap gap-2">
-              {cls.members.map((member) => (
+              {cls.members.map((member: any) => (
                 <div key={member.id} className="w-10 h-10 rounded-full bg-linear-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 border-2 border-white dark:border-zinc-950 flex items-center justify-center text-[10px] font-black group relative cursor-help">
                   {member.user.name.charAt(0)}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">

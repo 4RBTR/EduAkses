@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { sendReminder } from "@/app/actions/schedule";
 import { Bell, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function ReminderButton({ assignmentId }: { assignmentId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -14,10 +15,11 @@ export function ReminderButton({ assignmentId }: { assignmentId: string }) {
       try {
         await sendReminder(assignmentId);
         setIsSent(true);
+        toast.success("Reminder berhasil dikirim!");
         setTimeout(() => setIsSent(false), 3000); // Reset after 3s
       } catch (error) {
         console.error("Failed to send reminder", error);
-        alert("Gagal mengirim reminder: Anda mungkin tidak memiliki akses");
+        toast.error("Gagal mengirim reminder: Anda mungkin tidak memiliki akses");
       }
     });
   };

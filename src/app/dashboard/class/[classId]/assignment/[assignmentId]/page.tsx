@@ -8,9 +8,11 @@ import {
   Clock, 
   CheckCircle2, 
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Clock3
 } from "lucide-react";
 import { SubmitAssignmentModal } from "../../_components/SubmitAssignmentModal";
+import { RequestExtensionForm } from "./_components/RequestExtensionForm";
 
 interface PageProps {
   params: Promise<{
@@ -48,6 +50,9 @@ export default async function StudentAssignmentDetailPage(props: PageProps) {
       class: true,
       submissions: {
         where: { studentId: session.user.id }
+      },
+      extensions: {
+        where: { studentId: session.user.id }
       }
     }
   });
@@ -56,8 +61,10 @@ export default async function StudentAssignmentDetailPage(props: PageProps) {
 
   const assignmentAny = assignment as any;
   const submission = assignment.submissions[0] as any;
+  const extension = assignmentAny.extensions?.[0]; // Use any since types might be stale
   const hasSubmitted = !!submission;
   const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date() && !hasSubmitted;
+  const isBlocked = isOverdue && (!extension || extension.status !== "APPROVED");
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700 max-w-5xl mx-auto">
@@ -149,11 +156,26 @@ export default async function StudentAssignmentDetailPage(props: PageProps) {
             
             {!hasSubmitted ? (
                <div className="space-y-4">
-                  <p className="text-sm text-zinc-500">Anda belum mengumpulkan tugas ini. Silakan kumpulkan file atau catatan Anda menggunakan tombol di bawah.</p>
-                  <SubmitAssignmentModal 
-                    assignmentId={assignment.id} 
-                    assignmentTitle={assignment.title} 
-                  />
+                  {!isBlocked ? (
+                    <>
+                      <p className="text-sm text-zinc-500">Anda belum mengumpulkan tugas ini. Silakan kumpulkan file atau catatan Anda menggunakan tombol di bawah.</p>
+                      {extension?.status === "APPROVED" && (
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/50 rounded-xl text-[10px] font-bold text-emerald-600 flex items-center gap-2">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Dispensasi Disetujui: Anda dapat mengumpulkan sekarang.
+                        </div>
+                      )}
+                      <SubmitAssignmentModal 
+                        assignmentId={assignment.id} 
+                        assignmentTitle={assignment.title} 
+                      />
+                    </>
+                  ) : (
+                    <RequestExtensionForm 
+                      assignmentId={assignment.id} 
+                      currentRequest={extension} 
+                    />
+                  )}
                </div>
             ) : (
                <div className="space-y-6">

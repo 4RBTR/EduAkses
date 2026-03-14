@@ -200,8 +200,17 @@ export async function getClassDetail(classId: string) {
       },
       lessonSchedules: {
         orderBy: { dayOfWeek: "asc" }
+      },
+      notifications: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        } as any,
+        orderBy: { createdAt: "desc" }
       }
-    }
+    } as any
   });
 }
 export async function leaveClass(classId: string) {

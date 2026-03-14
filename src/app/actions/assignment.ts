@@ -40,6 +40,39 @@ export async function createAssignment(formData: FormData) {
   }
 }
 
+export async function updateAssignment(assignmentId: string, formData: FormData) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "TEACHER") {
+    return { error: "Akses ditolak." };
+  }
+
+  const title = formData.get("title") as string;
+  const description = formData.get("description") as string;
+  const fileUrl = formData.get("fileUrl") as string;
+  const dueDateStr = formData.get("dueDate") as string;
+
+  if (!title) return { error: "Judul wajib diisi." };
+
+  try {
+    await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: {
+        title,
+        description,
+        fileUrl,
+        dueDate: dueDateStr ? new Date(dueDateStr) : null,
+      },
+    });
+
+    revalidatePath("/dashboard/teacher/assignments");
+    revalidatePath(`/dashboard/class/${assignmentId}`); // Revalidate student view
+    return { success: true };
+  } catch (error) {
+    console.error("Update assignment error:", error);
+    return { error: "Gagal memperbarui tugas." };
+  }
+}
+
 export async function submitAssignment(assignmentId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "Silakan login." };
@@ -48,6 +81,25 @@ export async function submitAssignment(assignmentId: string, formData: FormData)
   const fileUrl = formData.get("fileUrl") as string;
 
   try {
+    // 1. Check Deadline
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        extensions: {
+          where: { studentId: session.user.id, status: "APPROVED" }
+        }
+      }
+    });
+
+    if (!assignment) return { error: "Tugas tidak ditemukan." };
+
+    const isPastDeadline = assignment.dueDate && new Date() > assignment.dueDate;
+    const hasApprovedExtension = assignment.extensions.length > 0;
+
+    if (isPastDeadline && !hasApprovedExtension) {
+      return { error: "Batas waktu pengumpulan telah berakhir. Silakan minta dispensasi ke guru." };
+    }
+
     await prisma.submission.upsert({
       where: {
         studentId_assignmentId: {
@@ -68,10 +120,12 @@ export async function submitAssignment(assignmentId: string, formData: FormData)
       }
     });
 
-    // Award XP (e.g., 50 points for submission)
+    // Award XP (e.g., 50 points for submission, 25 for late)
+    const pointsToAward = isPastDeadline ? 25 : 50;
+
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { points: { increment: 50 } }
+      data: { points: { increment: pointsToAward } }
     });
 
     revalidatePath(`/dashboard/class/${assignmentId}`);
@@ -144,5 +198,57 @@ export async function gradeSubmission(submissionId: string, grade: number, teach
   } catch (error) {
     console.error("Grade submission error:", error);
     return { error: "Gagal memberikan nilai." };
+  }
+}
+
+export async function requestExtension(assignmentId: string, reason: string) {
+  const session = await auth();
+  if (!session?.user) return { error: "Silakan login." };
+
+  try {
+    await prisma.assignmentExtension.upsert({
+      where: {
+        studentId_assignmentId: {
+          studentId: session.user.id,
+          assignmentId
+        }
+      },
+      update: {
+        reason,
+        status: "PENDING",
+        updatedAt: new Date()
+      },
+      create: {
+        studentId: session.user.id,
+        assignmentId,
+        reason
+      }
+    });
+
+    revalidatePath(`/dashboard/class/${assignmentId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Request extension error:", error);
+    return { error: "Gagal mengirim permintaan dispensasi." };
+  }
+}
+
+export async function manageExtension(extensionId: string, status: "APPROVED" | "REJECTED") {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "TEACHER") {
+    return { error: "Akses ditolak." };
+  }
+
+  try {
+    const extension = await prisma.assignmentExtension.update({
+      where: { id: extensionId },
+      data: { status }
+    });
+
+    revalidatePath(`/dashboard/teacher/assignments`);
+    return { success: true };
+  } catch (error) {
+    console.error("Manage extension error:", error);
+    return { error: "Gagal memperbarui status dispensasi." };
   }
 }
