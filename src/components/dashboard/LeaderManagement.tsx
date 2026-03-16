@@ -60,22 +60,22 @@ export function LeaderManagement({ classId }: LeaderManagementProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-4xl p-8 shadow-2xl space-y-8 h-full">
+    <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl sm:rounded-4xl p-5 sm:p-8 shadow-2xl space-y-8 h-full">
       <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-6">
-         <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100 italic tracking-tight uppercase flex items-center gap-3">
+         <h3 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-zinc-100 italic tracking-tight uppercase flex items-center gap-3">
             <Plus className="w-5 h-5 text-primary" />
             Panel Komando
          </h3>
          <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl">
             <button 
               onClick={() => setActiveTab("schedule")}
-              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "schedule" ? "bg-white dark:bg-zinc-800 shadow-sm text-primary" : "text-zinc-400"}`}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "schedule" ? "bg-white dark:bg-zinc-800 shadow-sm text-primary" : "text-zinc-400"}`}
             >
               Jadwal
             </button>
             <button 
               onClick={() => setActiveTab("announcement")}
-              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "announcement" ? "bg-white dark:bg-zinc-800 shadow-sm text-primary" : "text-zinc-400"}`}
+              className={`px-3 sm:px-4 py-2 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "announcement" ? "bg-white dark:bg-zinc-800 shadow-sm text-primary" : "text-zinc-400"}`}
             >
               Capaian
             </button>
@@ -93,7 +93,7 @@ export function LeaderManagement({ classId }: LeaderManagementProps) {
                 className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary transition-all"
               />
            </div>
-           <div className="grid grid-cols-3 gap-4">
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest pl-1">Hari</label>
                 <select 

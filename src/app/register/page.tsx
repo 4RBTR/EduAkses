@@ -5,6 +5,7 @@ import Link from "next/link";
 import { registerUser } from "@/app/actions/auth";
 import { Loader2, ArrowRight, UserPlus, GraduationCap, Users } from "lucide-react";
 import { useFormStatus } from "react-dom";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -31,7 +32,10 @@ export default function RegisterPage() {
   const [state, formAction] = useActionState(registerUser, null);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8 font-sans relative">
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md space-y-8 bg-white dark:bg-zinc-950 p-8 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
         <div>
           <div className="flex justify-center flex-col items-center">

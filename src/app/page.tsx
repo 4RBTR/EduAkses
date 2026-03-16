@@ -15,6 +15,10 @@ import {
   Sparkles
 } from "lucide-react";
 
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+
+import { Navbar } from "@/components/landing/Navbar";
+
 export default async function Home() {
   const session = await auth();
 
@@ -27,73 +31,37 @@ export default async function Home() {
         <div className="absolute -bottom-[10%] left-[20%] w-[35%] h-[35%] bg-purple-500 rounded-full blur-[110px]"></div>
       </div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-linear-to-br from-primary to-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-primary/20">
-              E
-            </div>
-            <span className="font-black text-2xl tracking-tighter bg-clip-text text-transparent bg-linear-to-r from-zinc-900 via-zinc-700 to-zinc-900 dark:from-white dark:via-zinc-300 dark:to-white">
-              EduAkses
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-10">
-            <Link href="#features" className="text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-primary transition-all hover:scale-105">Fitur</Link>
-            <Link href="#about" className="text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-primary transition-all hover:scale-105">Tentang</Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {session ? (
-              <Link 
-                href="/dashboard"
-                className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-black shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
-              >
-                Ke Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link href="/login" className="text-sm font-black text-zinc-700 dark:text-zinc-300 hover:text-primary transition-colors pr-2">Masuk</Link>
-                <Link 
-                  href="/register"
-                  className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-black shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
-                >
-                  Daftar
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar session={session} />
 
       {/* Hero Section */}
-      <main className="relative z-10 flex-1 pt-40 pb-24 px-4 overflow-hidden">
+      <main className="relative z-10 flex-1 pt-32 md:pt-48 pb-24 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-10">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/5 border border-primary/10 text-primary animate-in fade-in slide-in-from-top-6 duration-1000">
             <Sparkles className="w-4 h-4 fill-primary" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Next-Gen Learning Experience</span>
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter max-w-5xl bg-clip-text text-transparent bg-linear-to-b from-zinc-900 via-zinc-800 to-zinc-400 dark:from-white dark:via-zinc-100 dark:to-zinc-600 leading-[0.9] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter max-w-5xl bg-clip-text text-transparent bg-linear-to-b from-zinc-900 via-zinc-800 to-zinc-400 dark:from-white dark:via-zinc-100 dark:to-zinc-600 leading-none sm:leading-[0.9] animate-in fade-in slide-in-from-bottom-8 duration-1000">
             Belajar Tanpa Batas <br />
             <span className="text-primary italic">Mengajar Tanpa Ribet</span>
           </h1>
 
-          <p className="max-w-3xl text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 leading-relaxed font-semibold animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
+          <p className="max-w-3xl text-lg sm:text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 leading-relaxed font-semibold animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
             LMS terpadu yang didesain untuk menyatukan ekosistem sekolah. <br className="hidden md:block" />
             Simple, Powerful, dan Benar-benar Gratis.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-5 pt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+          <div className="flex flex-col sm:flex-row gap-5 pt-8 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 w-full sm:w-auto px-4 sm:px-0">
             <Link 
               href="/register"
-              className="group h-16 px-10 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl flex items-center justify-center gap-4 font-black text-xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:-translate-y-1 transition-all"
+              className="group h-14 sm:h-16 px-10 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl flex items-center justify-center gap-4 font-black text-lg sm:text-xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:-translate-y-1 transition-all"
             >
               Mulai Petualangan
               <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
             </Link>
             <Link 
               href="/login"
-              className="h-16 px-10 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md border-2 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-2xl flex items-center justify-center font-black text-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
+              className="h-14 sm:h-16 px-10 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md border-2 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-2xl flex items-center justify-center font-black text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
             >
               Masuk Dashboard
             </Link>

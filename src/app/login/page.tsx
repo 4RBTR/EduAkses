@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 
 const ROLE_DASHBOARDS: Record<string, string> = {
   TEACHER: "/dashboard/teacher",
@@ -63,7 +64,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container relative">
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="login-card">
         {/* Brand */}
         <div className="login-brand">

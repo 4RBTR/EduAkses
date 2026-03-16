@@ -83,45 +83,45 @@ export default async function StudentDashboard() {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-           <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-blue-500/50 transition-colors">
+           <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <BookOpen className="w-5 h-5" />
            </div>
            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kelas</p>
-              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{classes.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Kelas</p>
+              <p className="text-lg font-black text-zinc-900 dark:text-zinc-100">{classes.length}</p>
            </div>
         </div>
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-           <div className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-purple-500/50 transition-colors">
+           <div className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
               <ClipboardList className="w-5 h-5" />
            </div>
            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tugas</p>
-              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tugas</p>
+              <p className="text-lg font-black text-zinc-900 dark:text-zinc-100">
                  {classes.reduce((acc, c) => acc + c._count.assignments, 0)}
               </p>
            </div>
         </div>
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-           <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-orange-500/50 transition-colors">
+           <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center">
               <Puzzle className="w-5 h-5" />
            </div>
            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Kuis Tersedia</p>
-              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Kuis</p>
+              <p className="text-lg font-black text-zinc-900 dark:text-zinc-100">
                  {classes.reduce((acc, c) => acc + c._count.quizzes, 0)}
               </p>
            </div>
         </div>
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-           <div className="w-10 h-10 rounded-full bg-yellow-500/10 text-yellow-500 flex items-center justify-center">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-4 shadow-sm group hover:border-yellow-500/50 transition-colors">
+           <div className="w-10 h-10 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center justify-center">
               <Star className="w-5 h-5" />
            </div>
            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Poin XP</p>
-              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{user?.points.toLocaleString() || 0}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Poin XP</p>
+              <p className="text-lg font-black text-zinc-900 dark:text-zinc-100">{user?.points.toLocaleString() || 0}</p>
            </div>
         </div>
       </div>
@@ -219,9 +219,9 @@ export default async function StudentDashboard() {
               </div>
 
               {/* Reminders / Notifications */}
-              <div className="p-5 bg-linear-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-lg space-y-4">
+              <div className="p-5 bg-linear-to-br from-indigo-500 to-purple-600 dark:from-indigo-600/20 dark:to-purple-500/20 rounded-2xl text-white dark:text-zinc-100 shadow-lg dark:shadow-none border border-transparent dark:border-indigo-500/20 space-y-4">
                  <p className="text-sm font-bold flex items-center gap-2">
-                    <Star className="w-4 h-4 fill-white" />
+                    <Star className="w-4 h-4 fill-white dark:fill-zinc-100" />
                     Catatan Ketua Kelas
                  </p>
                  <div className="space-y-3">
@@ -229,7 +229,7 @@ export default async function StudentDashboard() {
                        <p className="text-xs opacity-70 italic">Belum ada pengumuman baru.</p>
                     ) : (
                        notifications.map((n) => (
-                          <div key={n.id} className="pb-2 border-b border-white/10 last:border-0 flex items-start justify-between gap-2 group/msg">
+                          <div key={n.id} className="pb-2 border-b border-white/10 dark:border-zinc-800 last:border-0 flex items-start justify-between gap-2 group/msg">
                              <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold leading-tight truncate">{n.title}</p>
                                 <p className="text-[10px] opacity-80 mt-1 line-clamp-2">{n.message}</p>

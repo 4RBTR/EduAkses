@@ -96,36 +96,36 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
   return (
     <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
       {/* Calendar Header */}
-      <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
+      <div className="p-4 sm:p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
-            <CalendarIcon className="w-6 h-6" />
+          <div className="p-2 sm:p-2.5 bg-primary text-white rounded-xl sm:rounded-2xl shadow-lg shadow-primary/20">
+            <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <h2 className="text-base sm:text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
               {monthNames[month]} {year}
             </h2>
-            <p className="text-xs text-zinc-500 font-medium">Agenda Belajar Terpadu</p>
+            <p className="hidden sm:block text-xs text-zinc-500 font-medium">Agenda Belajar Terpadu</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button 
             onClick={prevMonth}
-            className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={() => setCurrentDate(new Date())}
-            className="px-4 py-2 text-xs font-bold bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl transition-colors"
           >
             Hari Ini
           </button>
           <button 
             onClick={nextMonth}
-            className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
@@ -134,10 +134,11 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
       <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30">
         {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d, i) => (
           <div key={d} className={cn(
-            "py-3 text-center text-[10px] font-black uppercase tracking-[0.2em]",
-            i === 0 || i === 6 ? "text-red-500" : "text-zinc-400"
+            "py-2 sm:py-3 text-center text-[8px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em]",
+            i === 0 || i === 6 ? "text-red-500" : "text-zinc-500 dark:text-zinc-400"
           )}>
-            {d}
+            <span className="hidden sm:inline">{d}</span>
+            <span className="sm:hidden">{d[0]}</span>
           </div>
         ))}
       </div>
@@ -154,7 +155,7 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
             <div 
               key={i} 
               className={cn(
-                "min-h-[120px] p-2 border-r border-b border-zinc-100 dark:border-zinc-800/50 transition-colors",
+                "min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 border-r border-b border-zinc-200/50 dark:border-zinc-800/50 transition-colors",
                 d.current ? "bg-white dark:bg-zinc-950" : "bg-zinc-50/50 dark:bg-zinc-900/50",
                 (i + 1) % 7 === 0 && "border-r-0"
               )}

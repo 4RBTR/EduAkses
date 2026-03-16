@@ -21,9 +21,10 @@ type Role = "TEACHER" | "CLASS_LEADER" | "STUDENT";
 
 interface SidebarProps {
   role: Role;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, isMobile }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
@@ -64,28 +65,30 @@ export function Sidebar({ role }: SidebarProps) {
     <div
       className={cn(
         "relative flex flex-col h-full bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transition-all duration-300",
-        isCollapsed ? "w-20" : "w-64"
+        isMobile ? "w-full" : (isCollapsed ? "w-20" : "w-64")
       )}
     >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between h-16 p-4 border-b border-zinc-200 dark:border-zinc-800">
-        {!isCollapsed && (
+        {(!isCollapsed || isMobile) && (
           <span className="font-bold text-xl bg-clip-text text-transparent bg-linear-to-r from-primary to-indigo-600">
             EduAkses
           </span>
         )}
-        {isCollapsed && (
+        {isCollapsed && !isMobile && (
           <span className="font-bold text-xl text-primary mx-auto">EA</span>
         )}
       </div>
 
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-20 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 z-10 transition-colors"
-      >
-        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-      </button>
+      {/* Collapse Toggle - Hide on mobile */}
+      {!isMobile && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-3 top-20 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full p-1 text-zinc-400 hover:text-primary dark:hover:text-primary z-10 transition-all shadow-sm"
+        >
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">
@@ -99,15 +102,15 @@ export function Sidebar({ role }: SidebarProps) {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors group",
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 transition-all group",
                     isActive
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100",
+                      ? "bg-primary/10 text-primary font-bold shadow-sm"
+                      : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100",
                     isCollapsed ? "justify-center" : "justify-start"
                   )}
                   title={isCollapsed ? item.name : undefined}
                 >
-                  <Icon className={cn("shrink-0", isCollapsed ? "size-6" : "size-5")} />
+                  <Icon className={cn("shrink-0 transition-transform group-hover:scale-110", isCollapsed ? "size-6" : "size-5")} />
                   {!isCollapsed && <span className="truncate">{item.name}</span>}
                 </Link>
               </li>

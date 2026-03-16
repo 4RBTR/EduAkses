@@ -128,7 +128,7 @@ export default async function LeaderDashboard() {
 
             {/* Support Info Sidebar */}
             <div className="space-y-6">
-               <div className="bg-linear-to-br from-zinc-900 to-black rounded-3xl p-8 text-white space-y-6 shadow-2xl relative overflow-hidden">
+               <div className="bg-zinc-950 dark:bg-zinc-900 rounded-3xl p-8 text-white space-y-6 shadow-2xl relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
                   <h3 className="text-xl font-bold relative z-10">Tanggung Jawab Ketua</h3>
                   <div className="space-y-4 relative z-10 opacity-80 text-sm">

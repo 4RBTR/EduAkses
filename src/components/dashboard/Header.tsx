@@ -1,7 +1,8 @@
 "use client";
 
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface HeaderProps {
   user: {
@@ -9,18 +10,31 @@ interface HeaderProps {
     email?: string | null;
     role?: string;
   };
+  onMenuClick?: () => void;
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, onMenuClick }: HeaderProps) {
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-20">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-zinc-800 dark:text-zinc-200 capitalize">
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+        <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 capitalize">
           {user.role?.replace("_", " ").toLowerCase() || "Dashboard"}
         </h1>
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
+        {/* Separator */}
+        <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800" />
+
         {/* User Profile Info */}
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end">
