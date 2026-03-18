@@ -3,6 +3,7 @@
 import { LogOut, User, Menu } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationBell } from "./NotificationBell";
 
 interface HeaderProps {
   user: {
@@ -28,9 +29,12 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Theme Toggle */}
         <ThemeToggle />
+
+        {/* Notification Bell */}
+        <NotificationBell />
 
         {/* Separator */}
         <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800" />
@@ -41,7 +45,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
             <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
               {user.name || "User"}
             </span>
-            <span className="text-xs text-zinc-500 capitalize">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 capitalize">
               {user.role?.replace("_", " ").toLowerCase()}
             </span>
           </div>

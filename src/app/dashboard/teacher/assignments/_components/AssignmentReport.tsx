@@ -14,6 +14,7 @@ interface ReportItem {
   hasSubmitted: boolean;
   submittedAt: Date | null;
   grade: number | null;
+  submissionStatus: "ON_TIME" | "LATE" | "LATE_APPROVED" | null;
 }
 
 export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
@@ -96,6 +97,7 @@ export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
             <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 text-sm">
               <th className="pb-3 px-4 font-medium">Student Name</th>
               <th className="pb-3 px-4 font-medium">Status</th>
+              <th className="pb-3 px-4 font-medium">Status Waktu</th>
               <th className="pb-3 px-4 font-medium">Submitted At</th>
               <th className="pb-3 px-4 font-medium">Grade</th>
             </tr>
@@ -111,6 +113,19 @@ export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
                     {row.hasSubmitted ? 'Sudah Mengerjakan' : 'Belum Mengerjakan'}
                   </span>
                 </td>
+                <td className="py-3 px-4">
+                  {row.hasSubmitted && row.submissionStatus && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      row.submissionStatus === 'ON_TIME'
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        : row.submissionStatus === 'LATE_APPROVED'
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                        : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                    }`}>
+                      {row.submissionStatus === 'ON_TIME' ? '✓ Tepat Waktu' : row.submissionStatus === 'LATE_APPROVED' ? '⚠ Disetujui Telat' : '✗ Terlambat'}
+                    </span>
+                  )}
+                </td>
                 <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">
                   {row.submittedAt ? new Date(row.submittedAt).toLocaleString('id-ID') : '-'}
                 </td>
@@ -121,7 +136,7 @@ export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-zinc-500">No students found.</td>
+                <td colSpan={5} className="py-8 text-center text-zinc-500 dark:text-zinc-400">No students found.</td>
               </tr>
             )}
           </tbody>

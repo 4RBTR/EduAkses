@@ -3,13 +3,15 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = prisma as any;
+
 export async function getAssignmentReport(assignmentId: string) {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
 
-  // 1. Get the assignment details to find its classId
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
     select: { classId: true, title: true }
@@ -19,7 +21,6 @@ export async function getAssignmentReport(assignmentId: string) {
     throw new Error("Assignment not found");
   }
 
-  // 2. Fetch all students in the class
   const classMembers = await prisma.classMember.findMany({
     where: {
       classId: assignment.classId,
@@ -36,19 +37,19 @@ export async function getAssignmentReport(assignmentId: string) {
     }
   });
 
-  // 3. Fetch submissions for this assignment
-  const submissions = await prisma.submission.findMany({
+  // Use db (any-typed) to access new submissionStatus column
+  const submissions = await db.submission.findMany({
     where: { assignmentId },
-    include: {
-      student: { select: { id: true } }
+    select: {
+      studentId: true,
+      grade: true,
+      createdAt: true,
+      submissionStatus: true,
     }
   });
 
-  // 4. Map them together to output
-  // Result array with { user, submissionStatus, time, grade }
-  
-  const report = classMembers.map(member => {
-    const sub = submissions.find(s => s.studentId === member.user.id);
+  const report = classMembers.map((member: any) => {
+    const sub = submissions.find((s: any) => s.studentId === member.user.id);
     return {
       studentId: member.user.id,
       studentName: member.user.name,
@@ -56,6 +57,7 @@ export async function getAssignmentReport(assignmentId: string) {
       hasSubmitted: !!sub,
       submittedAt: sub ? sub.createdAt : null,
       grade: sub?.grade ?? null,
+      submissionStatus: sub?.submissionStatus ?? null,
     };
   });
 

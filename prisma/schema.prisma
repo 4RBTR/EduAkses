@@ -30,6 +30,12 @@ enum ExtensionStatus {
   REJECTED
 }
 
+enum SubmissionStatus {
+  ON_TIME
+  LATE
+  LATE_APPROVED
+}
+
 // ─── User ────────────────────────────────────────────────────────────
 
 model User {
@@ -54,6 +60,17 @@ model User {
   sentMessages     PriorityMessage[] @relation("Sender")
   receivedMessages PriorityMessage[] @relation("Receiver")
   personalEvents   PersonalEvent[]
+
+  // New DM Relations
+  sentDMs     DirectMessage[] @relation("DMSender")
+  receivedDMs DirectMessage[] @relation("DMReceiver")
+
+  // Group chat
+  groupMemberships GroupMember[]
+  groupMessages    GroupMessage[]
+
+  // Notifications
+  notifications UserNotification[]
 
   @@map("users")
 }
@@ -130,6 +147,7 @@ model Submission {
   fileUrl   String?
   grade     Float?
   teacherComment String?
+  submissionStatus SubmissionStatus @default(ON_TIME)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -205,7 +223,7 @@ model LessonSchedule {
   @@map("lesson_schedules")
 }
 
-// ─── Notification ───────────────────────────────────────────────────
+// ─── Notification (Class-level broadcast) ───────────────────────────
 
 model Notification {
   id        String   @id @default(cuid())
@@ -213,7 +231,6 @@ model Notification {
   message   String
   createdAt DateTime @default(now())
   
-  // Optional flag to determine if it's broad or specific
   isRead    Boolean  @default(false)
   expiresAt DateTime?
 
@@ -224,6 +241,23 @@ model Notification {
   class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+// ─── UserNotification (Per-user notification) ────────────────────────
+
+model UserNotification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, MESSAGE, ASSIGNMENT, QUIZ
+  isRead    Boolean  @default(false)
+  link      String?  // Clickable link e.g. /dashboard/chat
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_notifications")
 }
 
 // ─── QuizScore ───────────────────────────────────────────────────────
@@ -266,7 +300,7 @@ model AssignmentExtension {
   @@map("assignment_extensions")
 }
 
-// ─── PriorityMessage ──────────────────────────────────────────────────
+// ─── PriorityMessage (Legacy: Teacher <-> Class Leader) ──────────────
 
 model PriorityMessage {
   id        String   @id @default(cuid())
@@ -283,6 +317,70 @@ model PriorityMessage {
   receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@map("priority_messages")
+}
+
+// ─── DirectMessage (All roles DM system) ─────────────────────────────
+
+model DirectMessage {
+  id            String   @id @default(cuid())
+  content       String?
+  attachmentUrl String?  // File/image attachment
+  attachmentType String? // "image" or "document"
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  senderId   String
+  receiverId String
+
+  sender   User @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("DMReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("direct_messages")
+}
+
+// ─── GroupChat ───────────────────────────────────────────────────────
+
+model GroupChat {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  creatorId String
+
+  members  GroupMember[]
+  messages GroupMessage[]
+
+  @@map("group_chats")
+}
+
+model GroupMember {
+  id      String @id @default(cuid())
+  groupId String
+  userId  String
+
+  group   GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model GroupMessage {
+  id            String   @id @default(cuid())
+  content       String?
+  attachmentUrl String?
+  attachmentType String?
+  createdAt     DateTime @default(now())
+
+  groupId  String
+  senderId String
+
+  group  GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("group_messages")
 }
 
 // ─── PersonalEvent ────────────────────────────────────────────────────
