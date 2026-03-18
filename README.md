@@ -4,7 +4,7 @@
 [![Theme](https://img.shields.io/badge/Theme-Accessible%20%26%20Adaptive%20Learning-green)](#)
 [![Live Demo](https://img.shields.io/badge/Live-Demo-orange)](https://edu-akses.vercel.app/)
 
-EduAkses adalah sebuah *unified platform* yang dirancang untuk mengatasi fragmentasi dalam pendidikan digital. Kami menyatukan berbagai kebutuhan belajar—mulai dari manajemen kelas, pertemuan daring, hingga kuis adaptif bertenaga AI—ke dalam satu ekosistem yang mulus untuk mengurangi beban kognitif siswa dan meningkatkan efisiensi pengajaran guru.
+EduAkses adalah sebuah unified platform yang dirancang untuk mengatasi fragmentasi dalam pendidikan digital. Kami menyatukan berbagai kebutuhan belajar—mulai dari manajemen kelas, sistem tugas, hingga komunikasi langsung—ke dalam satu ekosistem Full-stack Serverless yang mulus untuk mengurangi beban kognitif siswa dan meningkatkan efisiensi pengajaran guru.
 
 ---
 
@@ -20,26 +20,25 @@ Aplikasi yang sudah dideploy dapat diakses melalui tautan berikut:
 Pendidikan digital saat ini mengalami fragmentasi di mana 85% siswa merasa kewalahan karena harus menggunakan 3-5 aplikasi berbeda (seperti Google Classroom, Zoom, dan Quizizz secara terpisah) untuk satu mata pelajaran. Hal ini menyebabkan kebingungan, hilangnya fokus, dan inefisiensi dalam pengelolaan tugas.
 
 ### Solusi
-EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. Dengan fitur integrasi AI untuk pembelajaran adaptif dan kontrol akses berbasis peran (termasuk peran khusus bagi Ketua Kelas), platform ini memastikan pembelajaran tetap terorganisir, inklusif, dan menyenangkan.
-
+EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. Dengan implementasi Proxy Layer untuk keamanan dan kontrol akses berbasis peran (termasuk peran khusus bagi Ketua Kelas), platform ini memastikan pembelajaran tetap terorganisir, aman dari eksploitasi data, dan memiliki performa stabil.
 ---
 
 ## ✨ Fitur Utama
 
 ### 👨‍🎓 Untuk Siswa
-* **Virtual Classroom**: Navigasi intuitif untuk belajar sinkron dan asinkron.
-* **Integrated Meeting**: Zoomeet langsung dari dashboard dengan fitur *focus mode*.
-* **Quiz Adaptif (AI)**: Kuis yang menyesuaikan tingkat kesulitan berdasarkan gaya belajar (Visual, Auditory, Kinestetik).
-* **Dashboard Personal**: Dilengkapi To-Do List, Kalender Interaktif, dan notifikasi pengingat tugas.
+* **Unified Dashboard**: Navigasi intuitif untuk mengakses materi, tugas, dan kuis dalam satu tempat.
+* **Integrated Communication**: Fitur chat langsung (Direct & Group) untuk diskusi asinkron yang efisien.
+* **Smart Notification**:Sistem pemberitahuan real-time untuk tugas baru, tenggat waktu, dan pengumuman kelas.
+* **Adaptive Quiz Progress**: Pengerjaan kuis dengan pelacakan akurasi dan skor yang terintegrasi otomatis ke pangkalan data.
 
 ### 🧑‍✈️ Untuk Ketua Kelas
-* **Manajemen Jadwal**: Wewenang untuk mengedit jadwal pelajaran kelas.
-* **Task Coordination**: Mengirim pengingat tugas dan melacak progres tugas kelompok anggota tim.
+* **Coordination Hub**: Wewenang khusus untuk membantu koordinasi progres tugas kelompok anggota tim.
+* **Schedule Monitoring**: Membantu guru dalam memantau ritme pembelajaran dan jadwal harian kelas.
 
 ### 👨‍🏫 Untuk Guru (Admin)
-* **Enrollment Control**: Mengelola kelas dan akses siswa.
-* **Deadline Management**: Membuat dan mengelola tugas serta pertemuan daring.
-* **Adaptive Scoring**: Membuat kuis dengan berbagai format dan penilaian otomatis yang adaptif.
+* **Enrollment & Access Controll**: Mengelola entitas kelas, siswa, dan otorisasi akses secara terpusat.
+* **Deadline & Task Management**: Membuat dan mengelola tugas dengan validasi data yang ketat via Server Actions.
+* **Automated Scoring**: Sistem penilaian yang terintegrasi dengan Prisma ORM untuk menjamin akurasi data akademik.
 
 ---
 
@@ -47,15 +46,14 @@ EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. 
 
 **Core Technology:**
 * **Language**: JavaScript / TypeScript
-* **Frontend**: [Next.js](https://nextjs.org/) (Deployed on Vercel)
-* **Backend**: [Node.js](https://nodejs.org/) & Express.js
+* **Frontend & Backend**: Next.js 15+ (App Router & Server Actions)
+* **Security Layer**: Custom Reverse Proxy & NextAuth.js
 * **Database**: PostgreSQL dengan [Prisma ORM](https://www.prisma.io/)
 
 **Tools & Deployment:**
 * **Design**: Figma
-* **Hosting**: Vercel (Frontend) & Railway/Render (Backend)
-* **Database Hosting**: Supabase / Railway
-* **API Testing**: Postman
+* **Hosting**: Vercel (Frontend & Serverless Logic)
+* **Database Hosting**: Supabase Connection Pooler (Transaction Mode - Port 6543)
 
 ---
 
