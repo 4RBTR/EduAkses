@@ -1,4 +1,4 @@
-#EduAkses – Web-Based Inclusive & Adaptive Learning Platform
+### EduAkses – Web-Based Inclusive & Adaptive Learning Platform
 
 [![Coding Camp 2026](https://img.shields.io/badge/Coding%20Camp-2026-blue)](https://dicoding.com)
 [![Theme](https://img.shields.io/badge/Theme-Accessible%20%26%20Adaptive%20Learning-green)](#)
