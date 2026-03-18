@@ -1,16 +1,37 @@
 import { getCalendarEvents } from "@/app/actions/calendar";
 import Calendar from "@/components/dashboard/Calendar";
+import { getPersonalEvents } from "@/app/dashboard/_actions/personal-events";
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import { CalendarDays, Sparkles } from "lucide-react";
 
 export default async function CalendarPage() {
   const session = await auth();
   if (!session?.user) {
-    redirect("/login");
+    return (
+      <div className="p-4 text-center">
+        Please login to view calendar.
+      </div>
+    );
   }
 
-  const { fixedEvents, recurringEvents } = await getCalendarEvents() as any;
+  const [{ fixedEvents, recurringEvents }, personalEvents] = await Promise.all([
+    getCalendarEvents() as any,
+    getPersonalEvents()
+  ]);
+
+  const mappedPersonalEvents = personalEvents.map(pe => ({
+    id: pe.id,
+    title: pe.title,
+    type: "PERSONAL",
+    date: pe.date,
+    startTime: pe.startTime,
+    endTime: pe.endTime,
+    classId: "",
+    className: "Personal Event",
+    description: pe.description
+  }));
+
+  const allEvents = [...fixedEvents, ...mappedPersonalEvents];
 
   return (
     <div className="space-y-8 p-2 md:p-0">
@@ -54,7 +75,7 @@ export default async function CalendarPage() {
          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -z-10"></div>
          
          <Calendar 
-            fixedEvents={fixedEvents} 
+            fixedEvents={allEvents} 
             recurringEvents={recurringEvents} 
          />
       </div>
@@ -85,6 +106,15 @@ export default async function CalendarPage() {
             <div>
               <p className="text-xs font-black text-zinc-900 dark:text-zinc-100">Reminder</p>
               <p className="text-[10px] text-zinc-500">Pesan dari Ketua Kelas</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-sm p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg shadow-purple-500/20"></div>
+            <div>
+              <p className="text-xs font-black text-zinc-900 dark:text-zinc-100">Personal Event</p>
+              <p className="text-[10px] text-zinc-500">Acara Pribadi</p>
             </div>
           </div>
         </div>

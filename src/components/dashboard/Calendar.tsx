@@ -12,14 +12,17 @@ import {
   CheckCircle2,
   X,
   FileText,
-  Star
+  Star,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createPersonalEvent } from "@/app/dashboard/_actions/personal-events";
+import { useRouter } from "next/navigation";
 
 type CalendarEvent = {
   id: string;
   title: string;
-  type: "ASSIGNMENT" | "SCHEDULE" | "NOTIFICATION" | "HOLIDAY";
+  type: "ASSIGNMENT" | "SCHEDULE" | "NOTIFICATION" | "HOLIDAY" | "PERSONAL";
   date: Date;
   startTime?: string;
   endTime?: string;
@@ -37,6 +40,16 @@ interface CalendarProps {
 export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState("");
+  const [newEventDesc, setNewEventDesc] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventStartTime, setNewEventStartTime] = useState("");
+  const [newEventEndTime, setNewEventEndTime] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const router = useRouter();
 
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -83,14 +96,44 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
     ASSIGNMENT: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200",
     SCHEDULE: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground border-primary/20",
     NOTIFICATION: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200",
-    HOLIDAY: "bg-red-500 text-white border-red-600 shadow-sm"
+    HOLIDAY: "bg-red-500 text-white border-red-600 shadow-sm",
+    PERSONAL: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400 border-purple-200"
   };
 
   const typeIcons = {
     ASSIGNMENT: <Clock className="w-3 h-3" />,
     SCHEDULE: <BookOpen className="w-3 h-3" />,
     NOTIFICATION: <Bell className="w-3 h-3" />,
-    HOLIDAY: <Star className="w-3 h-3 fill-white" />
+    HOLIDAY: <Star className="w-3 h-3 fill-white" />,
+    PERSONAL: <Star className="w-3 h-3" />
+  };
+
+  const handleCreatePersonalEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEventTitle || !newEventDate) return;
+
+    setIsSubmitting(true);
+    try {
+      await createPersonalEvent({
+        title: newEventTitle,
+        description: newEventDesc,
+        date: new Date(newEventDate),
+        startTime: newEventStartTime || null,
+        endTime: newEventEndTime || null,
+        color: "purple"
+      });
+      setIsAddingEvent(false);
+      setNewEventTitle("");
+      setNewEventDesc("");
+      setNewEventDate("");
+      setNewEventStartTime("");
+      setNewEventEndTime("");
+      router.refresh(); // Refresh payload so new event gets fetched
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,8 +145,14 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
             <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-base sm:text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <h2 className="text-base sm:text-xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
               {monthNames[month]} {year}
+              <button 
+                onClick={() => setIsAddingEvent(true)}
+                className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 text-xs rounded-lg hover:opacity-80 transition"
+              >
+                <Plus className="w-3 h-3" /> Personal Event
+              </button>
             </h2>
             <p className="hidden sm:block text-xs text-zinc-500 font-medium">Agenda Belajar Terpadu</p>
           </div>
@@ -273,6 +322,88 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Add Personal Event Modal */}
+      {isAddingEvent && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+           <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-4xl border border-zinc-200 dark:border-zinc-800 shadow-2xl p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+                   <Star className="w-5 h-5 text-purple-500 fill-purple-500" />
+                   Buat Personal Event
+                </h3>
+                <button onClick={() => setIsAddingEvent(false)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                   <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreatePersonalEvent} className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Judul Event *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={newEventTitle}
+                    onChange={e => setNewEventTitle(e.target.value)}
+                    className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Contoh: Belajar Matematika" 
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tanggal *</label>
+                  <input 
+                    type="date" 
+                    required 
+                    value={newEventDate}
+                    onChange={e => setNewEventDate(e.target.value)}
+                    className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Waktu Mulai</label>
+                     <input 
+                       type="time" 
+                       value={newEventStartTime}
+                       onChange={e => setNewEventStartTime(e.target.value)}
+                       className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Waktu Selesai</label>
+                     <input 
+                       type="time" 
+                       value={newEventEndTime}
+                       onChange={e => setNewEventEndTime(e.target.value)}
+                       className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                     />
+                   </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Deskripsi (Opsional)</label>
+                  <textarea 
+                    rows={3}
+                    value={newEventDesc}
+                    onChange={e => setNewEventDesc(e.target.value)}
+                    className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Tambahkan catatan..." 
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full mt-4 bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition active:scale-95 disabled:opacity-50"
+                >
+                  {isSubmitting ? "Menyimpan..." : "Simpan Event"}
+                </button>
+              </form>
+           </div>
         </div>
       )}
     </div>

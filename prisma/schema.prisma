@@ -51,6 +51,10 @@ model User {
   quizScores   QuizScore[]
   extensions   AssignmentExtension[]
 
+  sentMessages     PriorityMessage[] @relation("Sender")
+  receivedMessages PriorityMessage[] @relation("Receiver")
+  personalEvents   PersonalEvent[]
+
   @@map("users")
 }
 
@@ -227,6 +231,9 @@ model Notification {
 model QuizScore {
   id        String   @id @default(cuid())
   score     Int
+  correctAnswers Int @default(0)
+  incorrectAnswers Int @default(0)
+  completionPercentage Float @default(0)
   createdAt DateTime @default(now())
 
   // Foreign keys
@@ -257,4 +264,42 @@ model AssignmentExtension {
 
   @@unique([studentId, assignmentId])
   @@map("assignment_extensions")
+}
+
+// ─── PriorityMessage ──────────────────────────────────────────────────
+
+model PriorityMessage {
+  id        String   @id @default(cuid())
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Foreign keys
+  senderId   String
+  receiverId String
+
+  // Relations
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("priority_messages")
+}
+
+// ─── PersonalEvent ────────────────────────────────────────────────────
+
+model PersonalEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  startTime   String?  // Optional, format "HH:mm"
+  endTime     String?  // Optional, format "HH:mm"
+  color       String   @default("purple")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("personal_events")
 }

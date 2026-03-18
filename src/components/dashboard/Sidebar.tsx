@@ -11,7 +11,9 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  BarChart3,
+  MessageSquare
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,6 +38,8 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
           { name: "Kalender Belajar", href: "/dashboard/calendar", icon: Calendar },
           { name: "Assignment Control", href: "/dashboard/teacher/assignments", icon: ClipboardList },
           { name: "Quiz Manager", href: "/dashboard/teacher/quizzes", icon: Puzzle },
+          { name: "Laporan", href: "/dashboard/teacher/reports", icon: BarChart3 },
+          { name: "Priority Inbox", href: "/dashboard/messages", icon: MessageSquare },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
         ];
       case "CLASS_LEADER":
@@ -45,9 +49,10 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
           { name: "Jadwal & Reminders", href: "/dashboard/leader/schedule", icon: Calendar },
           { name: "Tugas Saya", href: "/dashboard/tasks", icon: ClipboardList },
           { name: "Kuis Adaptif", href: "/dashboard/quizzes", icon: Puzzle },
+          { name: "Priority Inbox", href: "/dashboard/messages", icon: MessageSquare },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
         ];
- case "STUDENT":
+      case "STUDENT":
       default:
         return [
           { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
