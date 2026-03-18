@@ -66,56 +66,7 @@ EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. 
 | **Sakti Mahayana Zaman** | Front-End Developer | Aktif |
 
 ---
-
-No
-👤 Nama Pengguna
-📧 Email Address
-🔑 Password
-🛡️ Role
-🛠️ Fitur yang Bisa Ditest
-01
-Pak Guru Sakti
-sakti.teacher@eduakses.com
-GuruEdu123!
-TEACHER
-Manajemen Kelas, Input Nilai, & Buat Tugas 👨‍🏫
-02
-Ibu Guru Almira
-almira.teacher@eduakses.com
-GuruEdu123!
-TEACHER
-Broadcast Notifikasi & Kontrol Enrollment 👩‍🏫
-03
-Danendra Leader
-danendra.leader@eduakses.com
-Ketua123!
-CLASS_LEADER
-Koordinasi Jadwal & Cek Progres Kelompok 🧑‍✈️
-
-
-
-
-
-No
-👤 Nama Siswa
-📧 Email Address
-🔑 Password (Default)
-📝 Catatan Test
-01
-Bagas Testing
-bagas.student@eduakses.com
-Siswa123!
-Test fitur Adaptive Quiz
-02
-Sakti Tester
-sakti.student@eduakses.com
-Siswa123!
-Test fitur Direct Chat
-03
-Almira Student
-almira.student@eduakses.com
-Siswa123!
-Test fitur Smart Notification
+Akun Pengelola & PengajarNoNama PenggunaEmail AddressPasswordRoleFitur yang Bisa Ditest01Pak Guru Saktisakti.teacher@eduakses.comGuruEdu123!TEACHERManajemen Kelas, Input Nilai, & Buat Tugas02Ibu Guru Almiraalmira.teacher@eduakses.comGuruEdu123!TEACHERBroadcast Notifikasi & Kontrol Enrollment03Danendra Leaderdanendra.leader@eduakses.comKetua123!CLASS_LEADERKoordinasi Jadwal & Cek Progres KelompokAkun SiswaNoNama SiswaEmail AddressPassword (Default)Catatan Test01Bagas Testingbagas.student@eduakses.comSiswa123!Test fitur Adaptive Quiz02Sakti Testersakti.student@eduakses.comSiswa123!Test fitur Direct Chat03Almira Studentalmira.student@eduakses.comSiswa123!Test fitur Smart Notification
 
 
 
