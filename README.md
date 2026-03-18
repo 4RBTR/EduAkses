@@ -19,8 +19,10 @@ The deployed application can be accessed through the following link:
 ### Problem (Problem Statement)
 Digital education is currently experiencing fragmentation, with 85% of students feeling overwhelmed by having to use 3-5 different applications (such as Google Classroom, Zoom, and Quizizz separately) for a single subject. This leads to confusion, loss of focus, and inefficiency in assignment management.
 
-### Solution
+### Solution .
+
 EduAkses is a painkiller that unifies the entire learning experience. With a Proxy Layer implementation for security and role-based access control (including a dedicated role for Class President), this platform ensures learning remains organized, secure from data exploitation, and maintains stable performance.
+
 ---
 
 ## ✨ Key Features
