@@ -1,44 +1,44 @@
-# EduAkses – Platform Pembelajaran Inklusif & Adaptif Berbasis Web
+#EduAkses – Web-Based Inclusive & Adaptive Learning Platform
 
 [![Coding Camp 2026](https://img.shields.io/badge/Coding%20Camp-2026-blue)](https://dicoding.com)
 [![Theme](https://img.shields.io/badge/Theme-Accessible%20%26%20Adaptive%20Learning-green)](#)
 [![Live Demo](https://img.shields.io/badge/Live-Demo-orange)](https://edu-akses.vercel.app/)
 
-EduAkses adalah sebuah unified platform yang dirancang untuk mengatasi fragmentasi dalam pendidikan digital. Kami menyatukan berbagai kebutuhan belajar—mulai dari manajemen kelas, sistem tugas, hingga komunikasi langsung—ke dalam satu ekosistem Full-stack Serverless yang mulus untuk mengurangi beban kognitif siswa dan meningkatkan efisiensi pengajaran guru.
+EduAkses is a unified platform designed to address fragmentation in digital education. We bring together various learning needs—from class management and assignment systems to live communication—into one seamless, full-stack serverless ecosystem to reduce students' cognitive load and increase teachers' teaching efficiency.
 
 ---
 
 ## 🔗 Live Project
-Aplikasi yang sudah dideploy dapat diakses melalui tautan berikut:
+The deployed application can be accessed through the following link:
 **[https://edu-akses.vercel.app/](https://edu-akses.vercel.app/)**
 
 ---
 
-## 🚀 Masalah & Solusi
+## 🚀 Problem & Solution
 
-### Masalah (Problem Statement)
-Pendidikan digital saat ini mengalami fragmentasi di mana 85% siswa merasa kewalahan karena harus menggunakan 3-5 aplikasi berbeda (seperti Google Classroom, Zoom, dan Quizizz secara terpisah) untuk satu mata pelajaran. Hal ini menyebabkan kebingungan, hilangnya fokus, dan inefisiensi dalam pengelolaan tugas.
+### Problem (Problem Statement)
+Digital education is currently experiencing fragmentation, with 85% of students feeling overwhelmed by having to use 3-5 different applications (such as Google Classroom, Zoom, and Quizizz separately) for a single subject. This leads to confusion, loss of focus, and inefficiency in assignment management.
 
-### Solusi
-EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. Dengan implementasi Proxy Layer untuk keamanan dan kontrol akses berbasis peran (termasuk peran khusus bagi Ketua Kelas), platform ini memastikan pembelajaran tetap terorganisir, aman dari eksploitasi data, dan memiliki performa stabil.
+### Solution
+EduAkses is a painkiller that unifies the entire learning experience. With a Proxy Layer implementation for security and role-based access control (including a dedicated role for Class President), this platform ensures learning remains organized, secure from data exploitation, and maintains stable performance.
 ---
 
-## ✨ Fitur Utama
+## ✨ Key Features
 
-### 👨‍🎓 Untuk Siswa
-* **Unified Dashboard**: Navigasi intuitif untuk mengakses materi, tugas, dan kuis dalam satu tempat.
-* **Integrated Communication**: Fitur chat langsung (Direct & Group) untuk diskusi asinkron yang efisien.
-* **Smart Notification**:Sistem pemberitahuan real-time untuk tugas baru, tenggat waktu, dan pengumuman kelas.
-* **Adaptive Quiz Progress**: Pengerjaan kuis dengan pelacakan akurasi dan skor yang terintegrasi otomatis ke pangkalan data.
+### 👨‍🎓 For Students
+* **Unified Dashboard**: Intuitive navigation to access materials, assignments, and quizzes in one place.
+* **Integrated Communication**: Direct & Group chat features for efficient asynchronous discussions.
+* **Smart Notification**: Real-time notification system for new assignments, deadlines, and class announcements.
+* **Adaptive Quiz Progress**: Quiz work with accuracy and score tracking automatically integrated into the database.
 
-### 🧑‍✈️ Untuk Ketua Kelas
-* **Coordination Hub**: Wewenang khusus untuk membantu koordinasi progres tugas kelompok anggota tim.
-* **Schedule Monitoring**: Membantu guru dalam memantau ritme pembelajaran dan jadwal harian kelas.
+### 🧑‍✈️ For Class Leaders
+* **Coordination Hub**: Special authority to help coordinate the progress of team members' group assignments.
+* **Schedule Monitoring**: Assists teachers in monitoring the learning rhythm and daily class schedule.
 
-### 👨‍🏫 Untuk Guru (Admin)
-* **Enrollment & Access Controll**: Mengelola entitas kelas, siswa, dan otorisasi akses secara terpusat.
-* **Deadline & Task Management**: Membuat dan mengelola tugas dengan validasi data yang ketat via Server Actions.
-* **Automated Scoring**: Sistem penilaian yang terintegrasi dengan Prisma ORM untuk menjamin akurasi data akademik.
+### 👨‍🏫 For Teachers (Admins)
+* **Enrollment & Access Control**: Centrally manage class entities, students, and access authorizations.
+* **Deadline & Task Management**: Create and manage assignments with strict data validation via Server Actions.
+* **Automated Scoring**: A scoring system integrated with Prisma ORM to ensure the accuracy of academic data.
 
 ---
 
@@ -48,44 +48,43 @@ EduAkses hadir sebagai "painkiller" yang menyatukan seluruh pengalaman belajar. 
 * **Language**: JavaScript / TypeScript
 * **Frontend & Backend**: Next.js 15+ (App Router & Server Actions)
 * **Security Layer**: Custom Reverse Proxy & NextAuth.js
-* **Database**: PostgreSQL dengan [Prisma ORM](https://www.prisma.io/)
+* **Database**: PostgreSQL with [Prisma ORM](https://www.prisma.io/)
 
-**Tools & Deployment:**
+**Tools & Deployments:**
 * **Design**: Figma
 * **Hosting**: Vercel (Frontend & Serverless Logic)
 * **Database Hosting**: Supabase Connection Pooler (Transaction Mode - Port 6543)
 
 ---
 
-## 👥 Tim Proyek (CC26-PS057)
+## 👥 Project Team (CC26-PS057)
 
-| Nama Anggota | Peran | Status |
+| Member Name | Role | Status |
 | :--- | :--- | :--- |
-| **Almira Dwi Rosyadi** | Project Management, UI/UX | Aktif |
-| **Danendra Bagas Himawan** | Back-End Developer | Aktif |
-| **Sakti Mahayana Zaman** | Front-End Developer | Aktif |
+| **Almira Dwi Rosyadi** | Project Management, UI/UX | Active |
+| **Danendra Bagas Himawan** | Back-End Developer | Active |
+| **Sakti Mahayana Zaman** | Front-End Developer | Active |
 
 ---
 
-## Akun Untuk Testing
+## Testing Account
 
-## Akun Penglola
-| Nama Pengguna | Email Address | Password |
+## Administrator Account
+| Username | Email Address | Password |
 | :--- | :--- | :--- |
-| **Pak Guru Sakti** | sakti.teacher@eduakses.com | GuruEdu123! |
-| **Ibu Guru Almira** | almira.teacher@eduakses.com | GuruEdu123! |
+| **Teacher Sakti** | sakti.teacher@eduakses.com | GuruEdu123! |
+| **Teacher Almira** | almira.teacher@eduakses.com | GuruEdu123! |
 | **Danendra Leader** | danendra.leader@eduakses.com | Ketua123! |
 
 ---
 
-## Akun Siswa
-| Nama Pengguna | Email Address | Password |
+## Student Account
+| Username | Email Address | Password |
 | :--- | :--- | :--- |
 | **Bagas Testing** | bagas.student@eduakses.com | Siswa123! |
-| **Sakti Testeing** | sakti.student@eduakses.com | Siswa123! |
+| **Sakti Testing** | sakti.student@eduakses.com | Siswa123! |
 | **Almira Student** | almira.student@eduakses.com | Siswa123! |
-
 
 ---
 
-*Proyek ini dikembangkan sebagai bagian dari **Coding Camp 2026 powered by DBS Foundation**.*
+*This project was developed as part of **Coding Camp 2026 powered by DBS Foundation**.*
