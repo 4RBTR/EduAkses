@@ -76,7 +76,8 @@ export default async function CalendarPage() {
          
          <Calendar 
             fixedEvents={allEvents} 
-            recurringEvents={recurringEvents} 
+            recurringEvents={recurringEvents}
+            userRole={session.user.role}
          />
       </div>
 

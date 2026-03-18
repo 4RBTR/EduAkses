@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { getNextQuestion, verifyAnswer, submitQuizScore, NextQuestionResult, Difficulty } from "@/app/actions/quiz";
-import { Loader2, ArrowRight, BrainCircuit, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, ArrowRight, BrainCircuit, CheckCircle2, XCircle, Trophy, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -18,7 +18,9 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
   
   // Quiz State
   const [answeredIds, setAnsweredIds] = useState<string[]>([]);
-  const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [currentDifficulty, setCurrentDifficulty] = useState<Difficulty | null>(null);
   const [wasCorrectLastTime, setWasCorrectLastTime] = useState<boolean | null>(null);
   const [isFinished, setIsFinished] = useState(false);
@@ -27,30 +29,33 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [isLoadingNext, setIsLoadingNext] = useState(true);
+  const [actualCorrectAnswer, setActualCorrectAnswer] = useState<string | null>(null);
 
   // Initialize Quiz
   useEffect(() => {
     fetchNext();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [quizId]);
 
   const fetchNext = async (currentAnsweredIds?: string[]) => {
     setIsLoadingNext(true);
-    setQuestion(null); // Clear previous question
+    setQuestion(null);
     setSelectedOption(null);
     setFeedback(null);
+    setActualCorrectAnswer(null);
     
     try {
       const ids = currentAnsweredIds || answeredIds;
       const result = await getNextQuestion(quizId, currentDifficulty, wasCorrectLastTime, ids);
       if (result && result.isFinished) {
+        setTotalQuestions(result.totalQuestions);
         setIsFinished(true);
       } else if (result) {
         setQuestion(result);
         setCurrentDifficulty(result.difficulty);
+        setTotalQuestions(result.totalQuestions);
       }
     } catch (error) {
-      console.error("Failed to fetch next question:", error);
+      console.error("Gagal memuat soal berikutnya:", error);
     } finally {
       setIsLoadingNext(false);
     }
@@ -61,30 +66,29 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
 
     startTransition(async () => {
       try {
-        const isCorrect = await verifyAnswer(question.id, selectedOption);
+        const result = await verifyAnswer(question.id, selectedOption);
+        const isCorrect = result.isCorrect;
+        
         setFeedback(isCorrect ? "correct" : "incorrect");
         setWasCorrectLastTime(isCorrect);
+        setActualCorrectAnswer(result.correctAnswer);
         
-        // Calculate points based on difficulty
-        let points = 0;
         if (isCorrect) {
-          if (question.difficulty === "EASY") points = 10;
-          if (question.difficulty === "MEDIUM") points = 20;
-          if (question.difficulty === "HARD") points = 30;
-          setScore(s => s + points);
+          setCorrectCount(c => c + 1);
+        } else {
+          setIncorrectCount(c => c + 1);
         }
 
-        // Add to answered list so it doesn't repeat
         const newAnsweredIds = [...answeredIds, question.id];
         setAnsweredIds(newAnsweredIds);
 
-        // Small delay so user sees feedback
+        // Durasi delay agar user sempat membaca feedback/jawaban yang benar
         setTimeout(() => {
           fetchNext(newAnsweredIds);
-        }, 1500);
+        }, isCorrect ? 1200 : 3500); // Beri waktu lebih lama jika salah agar bisa baca kunci jawaban
 
       } catch (error) {
-        console.error("Failed to verify answer:", error);
+        console.error("Gagal verifikasi jawaban:", error);
       }
     });
   };
@@ -92,103 +96,134 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
   const finishQuiz = () => {
     startTransition(async () => {
       try {
-        await submitQuizScore(quizId, score);
+        await submitQuizScore(quizId, correctCount, incorrectCount, totalQuestions);
         router.push("/dashboard");
         router.refresh();
       } catch (error) {
-        console.error("Failed to submit score:", error);
+        console.error("Gagal menyimpan skor:", error);
       }
     });
   };
 
+  const liveScore = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const currentQuestionNumber = Math.min(answeredIds.length + 1, totalQuestions);
+
   if (isLoadingNext && !question) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-zinc-500 font-medium animate-pulse">Memuat algoritma adaptif...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <div className="relative">
+            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <BrainCircuit className="w-6 h-6 text-indigo-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+        <p className="text-zinc-500 font-bold animate-pulse">Menghitung Jalur Adaptif...</p>
       </div>
     );
   }
 
   if (isFinished) {
     return (
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 max-w-2xl mx-auto text-center shadow-sm">
-        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-10 h-10" />
+      <div className="bg-white dark:bg-zinc-950 border-2 border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 max-w-2xl mx-auto text-center shadow-xl">
+        <div className="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <Trophy className="w-12 h-12" />
         </div>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Kuis Selesai!</h2>
-        <p className="text-zinc-500 mb-8">Anda telah menyelesaikan sesi adaptif untuk {quizTitle}.</p>
+        <h2 className="text-3xl font-black text-zinc-900 dark:text-zinc-100 mb-2">Luar Biasa!</h2>
+        <p className="text-zinc-500 mb-8 font-medium">Sesi pembelajaran adaptif untuk <span className="text-indigo-600 font-bold">{quizTitle}</span> telah selesai.</p>
         
-        <div className="bg-zinc-50 dark:bg-zinc-900 rounded-xl p-6 mb-8 inline-block min-w-[200px]">
-          <span className="block text-sm text-zinc-500 mb-1">Total Skor</span>
-          <span className="text-5xl font-black text-primary">{score}</span>
+        <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800">
+            <span className="block text-[10px] font-black text-zinc-400 mb-1 uppercase tracking-widest">Score</span>
+            <span className="text-4xl font-black text-indigo-600">{liveScore}</span>
+          </div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl p-5 border border-emerald-100 dark:border-emerald-900/30">
+            <span className="block text-[10px] font-black text-emerald-600/60 mb-1 uppercase tracking-widest">Benar</span>
+            <span className="text-4xl font-black text-emerald-600">{correctCount}</span>
+          </div>
+          <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl p-5 border border-rose-100 dark:border-rose-900/30">
+            <span className="block text-[10px] font-black text-rose-500/60 mb-1 uppercase tracking-widest">Salah</span>
+            <span className="text-4xl font-black text-rose-500">{incorrectCount}</span>
+          </div>
         </div>
 
         <button
           onClick={finishQuiz}
           disabled={isPending}
-          className="w-full sm:w-auto px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2"
+          className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-3 active:scale-[0.98]"
         >
-          {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-          Kembali ke Dashboard
+          {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+          Selesaikan & Simpan Progress
         </button>
       </div>
     );
   }
 
-  if (!question) return null;
-
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Header Info */}
+    <div className="max-w-3xl mx-auto px-4">
+      {/* Navigation Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{quizTitle}</h1>
-          <p className="text-sm text-zinc-500 flex items-center gap-2 mt-1">
-            <BrainCircuit className="w-4 h-4" />
-            Mode Adaptif Memori
-          </p>
+        <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none">
+                <BrainCircuit className="w-6 h-6 text-white" />
+            </div>
+            <div>
+                <h1 className="text-xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">{quizTitle}</h1>
+                <div className="flex items-center gap-2 mt-0.5">
+                    <span className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-tighter",
+                        question?.difficulty === "HARD" ? "bg-rose-100 text-rose-600" : 
+                        question?.difficulty === "MEDIUM" ? "bg-amber-100 text-amber-600" : "bg-emerald-100 text-emerald-600"
+                    )}>
+                        Level: {question?.difficulty}
+                    </span>
+                </div>
+            </div>
         </div>
         <div className="text-right">
-          <div className="text-sm font-medium text-zinc-500">Skor Aktif</div>
-          <div className="text-2xl font-bold text-primary">{score}</div>
+          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Progress</div>
+          <div className="text-2xl font-black text-indigo-600">
+            {currentQuestionNumber}
+            <span className="text-zinc-300 font-medium text-lg"> / {totalQuestions}</span>
+          </div>
         </div>
       </div>
 
-      {/* Question Card */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+      {/* Modern Progress Bar */}
+      <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 mb-10 p-0.5 shadow-inner">
+        <div
+          className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 ease-out shadow-sm"
+          style={{ width: `${totalQuestions > 0 ? (answeredIds.length / totalQuestions) * 100 : 0}%` }}
+        />
+      </div>
+
+      {/* Main Question Card */}
+      <div className="bg-white dark:bg-zinc-950 border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] p-8 md:p-12 shadow-sm relative overflow-hidden transition-all">
         {isLoadingNext && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-10 flex items-center justify-center">
-             <div className="flex flex-col items-center gap-3">
-               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-               <p className="text-sm font-bold text-primary animate-pulse italic">Mempersiapkan Tantangan Berikutnya...</p>
-             </div>
+          <div className="absolute inset-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-4">
+             <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+             <p className="text-sm font-black text-indigo-600 animate-pulse tracking-widest uppercase">Menganalisis Performa...</p>
           </div>
         )}
 
-        {/* Difficulty Badge */}
-        <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold mb-6 uppercase tracking-wider
-          bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
-          Tingkat: {question.difficulty}
-        </div>
-
-        <h3 className="text-xl md:text-2xl font-semibold text-zinc-800 dark:text-zinc-100 mb-8 leading-relaxed">
-          {question.question}
+        <h3 className="text-2xl md:text-3xl font-bold text-zinc-800 dark:text-zinc-100 mb-10 leading-snug">
+          {question?.question}
         </h3>
 
-        {/* Options */}
-        <div className="space-y-3 mb-8">
-          {question.options.map((option, index) => {
+        <div className="space-y-4 mb-10">
+          {question?.options.map((option, index) => {
             const isSelected = selectedOption === option;
-            let stateClass = "border-zinc-200 dark:border-zinc-800 hover:border-primary hover:bg-primary/5";
+            const isCorrectOption = option === actualCorrectAnswer;
+            
+            let stateClass = "border-zinc-100 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/30";
             
             if (isSelected) {
-              stateClass = "border-primary bg-primary/10 ring-1 ring-primary";
-              if (feedback === "correct") stateClass = "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500";
-              if (feedback === "incorrect") stateClass = "border-red-500 bg-red-500/10 text-red-700 dark:text-red-400 ring-1 ring-red-500";
+              stateClass = "border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 ring-2 ring-indigo-600";
+              if (feedback === "correct") stateClass = "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 ring-2 ring-emerald-500 text-emerald-700 dark:text-emerald-400";
+              if (feedback === "incorrect") stateClass = "border-rose-500 bg-rose-50 dark:bg-rose-900/20 ring-2 ring-rose-500 text-rose-700 dark:text-rose-400";
             } else if (feedback) {
-              // Dim other options during feedback
-              stateClass = "border-zinc-200 dark:border-zinc-800 opacity-50";
+              if (feedback === "incorrect" && isCorrectOption) {
+                stateClass = "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 ring-2 ring-emerald-500 text-emerald-700 dark:text-emerald-400 animate-pulse";
+              } else {
+                stateClass = "border-zinc-50 dark:border-zinc-900 opacity-40 grayscale-[0.5]";
+              }
             }
 
             return (
@@ -197,32 +232,45 @@ export function QuizEngine({ quizId, quizTitle }: QuizEngineProps) {
                 disabled={!!feedback || isPending}
                 onClick={() => setSelectedOption(option)}
                 className={cn(
-                  "w-full text-left flex items-center p-4 rounded-xl border-2 transition-all font-medium text-zinc-700 dark:text-zinc-300",
+                  "w-full text-left flex items-center p-5 rounded-2xl border-2 transition-all duration-300 font-bold",
                   stateClass
                 )}
               >
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-bold opacity-70">
+                <div className="flex-1 flex items-center gap-4">
+                  <span className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-xl border-2 text-sm font-black transition-colors",
+                    isSelected ? "bg-indigo-600 text-white border-indigo-600" : "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400"
+                  )}>
                     {String.fromCharCode(65 + index)}
                   </span>
-                  <span>{option}</span>
+                  <span className="text-lg">{option}</span>
                 </div>
-                {isSelected && feedback === "correct" && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                {isSelected && feedback === "incorrect" && <XCircle className="w-5 h-5 text-red-500" />}
+                
+                {feedback && isCorrectOption && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500 text-white rounded-lg animate-in zoom-in-50 duration-300">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span className="text-[10px] uppercase font-black">Benar</span>
+                    </div>
+                )}
+                {isSelected && feedback === "incorrect" && <XCircle className="w-6 h-6 text-rose-500 animate-shake" />}
               </button>
             );
           })}
         </div>
 
-        {/* Submit Action */}
-        <div className="flex justify-end pt-4 border-t border-zinc-100 dark:border-zinc-800">
+        {/* Footer Info & Action */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-zinc-100 dark:border-zinc-900">
+          <div className="flex items-center gap-2 text-zinc-400 italic text-sm">
+             <Lightbulb className="w-4 h-4 text-amber-500" />
+             {feedback === "incorrect" ? "Pelajari jawabannya untuk soal serupa nanti." : "Pilih jawaban yang paling tepat."}
+          </div>
           <button
             onClick={handleAnswerSubmit}
             disabled={!selectedOption || !!feedback || isPending}
-            className="px-6 py-2.5 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 transition-colors inline-flex items-center gap-2"
+            className="w-full sm:w-auto px-10 py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-black rounded-2xl hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-3 shadow-xl active:scale-95"
           >
-            {isPending ? "Mengecek..." : "Periksa Jawaban"}
-            {!isPending && <ArrowRight className="w-4 h-4" />}
+            {isPending ? "Menganalisis..." : "Periksa Jawaban"}
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
       </div>

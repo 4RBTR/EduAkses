@@ -16,7 +16,7 @@ export default async function AdaptiveQuizPage(props: PageProps) {
   const { quizId } = params;
 
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "STUDENT") {
+  if (!session?.user?.id || (session.user.role !== "STUDENT" && session.user.role !== "CLASS_LEADER")) {
     redirect("/dashboard");
   }
 

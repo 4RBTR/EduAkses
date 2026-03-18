@@ -16,7 +16,8 @@ import {
   Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createPersonalEvent } from "@/app/dashboard/_actions/personal-events";
+import { createPersonalEvent, updatePersonalEvent, deletePersonalEvent } from "@/app/dashboard/_actions/personal-events";
+import { updateSchedule, deleteSchedule } from "@/app/actions/calendar";
 import { useRouter } from "next/navigation";
 
 type CalendarEvent = {
@@ -35,18 +36,22 @@ type CalendarEvent = {
 interface CalendarProps {
   fixedEvents: CalendarEvent[];
   recurringEvents: CalendarEvent[];
+  userRole?: string;
 }
 
-export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps) {
+export default function Calendar({ fixedEvents, recurringEvents, userRole }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   
   const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [isEditingEvent, setIsEditingEvent] = useState(false);
+  
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDesc, setNewEventDesc] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventStartTime, setNewEventStartTime] = useState("");
   const [newEventEndTime, setNewEventEndTime] = useState("");
+  const [newEventDayOfWeek, setNewEventDayOfWeek] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -135,6 +140,67 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
       setIsSubmitting(false);
     }
   };
+
+  const handleUpdateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    setIsSubmitting(true);
+    try {
+      if (selectedEvent.type === "PERSONAL") {
+        await updatePersonalEvent(selectedEvent.id, {
+          title: newEventTitle,
+          description: newEventDesc,
+          date: new Date(newEventDate),
+          startTime: newEventStartTime || null,
+          endTime: newEventEndTime || null,
+        });
+      } else if (selectedEvent.type === "SCHEDULE") {
+        await updateSchedule(selectedEvent.id, {
+          subject: newEventTitle,
+          dayOfWeek: newEventDayOfWeek,
+          startTime: newEventStartTime,
+          endTime: newEventEndTime,
+        });
+      }
+      setIsEditingEvent(false);
+      setSelectedEvent(null);
+      router.refresh();
+    } catch (error) {
+       console.error(error);
+    } finally {
+       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!selectedEvent || !confirm("Yakin ingin menghapus event ini?")) return;
+    setIsSubmitting(true);
+    try {
+      if (selectedEvent.type === "PERSONAL") {
+        await deletePersonalEvent(selectedEvent.id);
+      } else if (selectedEvent.type === "SCHEDULE") {
+        await deleteSchedule(selectedEvent.id);
+      }
+      setSelectedEvent(null);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openEditMode = () => {
+    if (!selectedEvent) return;
+    setNewEventTitle(selectedEvent.title);
+    setNewEventDesc(selectedEvent.description || "");
+    if (selectedEvent.date) setNewEventDate(selectedEvent.date.toISOString().split('T')[0]);
+    setNewEventStartTime(selectedEvent.startTime || "");
+    setNewEventEndTime(selectedEvent.endTime || "");
+    setNewEventDayOfWeek(selectedEvent.dayOfWeek || 1);
+    setIsEditingEvent(true);
+  };
+
 
   return (
     <div className="bg-white dark:bg-zinc-950 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
@@ -255,18 +321,20 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
                   {selectedEvent.type === "HOLIDAY" ? "Libur Nasional" : selectedEvent.type}
                 </span>
                 <button 
-                  onClick={() => setSelectedEvent(null)}
+                  onClick={() => { setSelectedEvent(null); setIsEditingEvent(false); }}
                   className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors"
                 >
                   <X size={20} className="text-zinc-400" />
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
-                    {selectedEvent.title}
-                  </h3>
+              {!isEditingEvent ? (
+                <>
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 leading-tight">
+                        {selectedEvent.title}
+                      </h3>
                   {selectedEvent.className && (
                     <div className="flex items-center gap-2 text-primary font-bold text-sm">
                       <CheckCircle2 size={16} />
@@ -314,12 +382,124 @@ export default function Calendar({ fixedEvents, recurringEvents }: CalendarProps
                 )}
               </div>
 
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="w-full py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-black rounded-3xl hover:shadow-2xl hover:shadow-primary/20 transition-all active:scale-95"
-              >
-                Tutup Agenda
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 mt-6 border-t border-zinc-100 dark:border-zinc-800 pt-6">
+                 {(selectedEvent.type === "PERSONAL" || 
+                   (selectedEvent.type === "SCHEDULE" && (userRole === "TEACHER" || userRole === "CLASS_LEADER"))) && (
+                    <>
+                      <button
+                        onClick={openEditMode}
+                        className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-bold rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 border transition-all"
+                      >
+                         Edit Event
+                      </button>
+                      <button
+                        onClick={handleDeleteEvent}
+                        disabled={isSubmitting}
+                        className="flex-1 py-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 border border-red-200 transition-all disabled:opacity-50"
+                      >
+                         Hapus Event
+                      </button>
+                    </>
+                 )}
+                 <button
+                   onClick={() => setSelectedEvent(null)}
+                   className="flex-2 py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-black rounded-xl hover:shadow-2xl hover:shadow-primary/20 transition-all active:scale-95"
+                 >
+                   Tutup Agenda
+                 </button>
+              </div>
+              </>
+              ) : (
+                <form onSubmit={handleUpdateEvent} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Judul Event *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={newEventTitle}
+                      onChange={e => setNewEventTitle(e.target.value)}
+                      className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  
+                  {selectedEvent.type === "PERSONAL" && (
+                    <div>
+                      <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tanggal *</label>
+                      <input 
+                        type="date" 
+                        required 
+                        value={newEventDate}
+                        onChange={e => setNewEventDate(e.target.value)}
+                        className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  )}
+
+                  {selectedEvent.type === "SCHEDULE" && (
+                    <div>
+                      <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Hari ke (0=Minggu, 1=Senin..)</label>
+                      <input 
+                        type="number" 
+                        required 
+                        min={0} max={6}
+                        value={newEventDayOfWeek}
+                        onChange={e => setNewEventDayOfWeek(Number(e.target.value))}
+                        className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  )}
+  
+                  <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Waktu Mulai</label>
+                       <input 
+                         type="time" 
+                         value={newEventStartTime}
+                         onChange={e => setNewEventStartTime(e.target.value)}
+                         className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                       />
+                     </div>
+                     <div>
+                       <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Waktu Selesai</label>
+                       <input 
+                         type="time" 
+                         value={newEventEndTime}
+                         onChange={e => setNewEventEndTime(e.target.value)}
+                         className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                       />
+                     </div>
+                  </div>
+  
+                  {selectedEvent.type === "PERSONAL" && (
+                    <div>
+                      <label className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Deskripsi (Opsional)</label>
+                      <textarea 
+                        rows={3}
+                        value={newEventDesc}
+                        onChange={e => setNewEventDesc(e.target.value)}
+                        className="mt-1 w-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <button 
+                      type="button"
+                      onClick={() => setIsEditingEvent(false)}
+                      className="flex-1 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-bold py-3 rounded-xl border hover:bg-zinc-200 dark:hover:bg-zinc-800 transition"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="flex-1 bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition active:scale-95 disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>

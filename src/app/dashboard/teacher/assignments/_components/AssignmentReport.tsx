@@ -14,7 +14,7 @@ interface ReportItem {
   hasSubmitted: boolean;
   submittedAt: Date | null;
   grade: number | null;
-  submissionStatus: "ON_TIME" | "LATE" | "LATE_APPROVED" | null;
+  submissionStatus: "ON_TIME" | "LATE" | "LATE_APPROVED" | "BELUM_MENGERJAKAN" | null;
 }
 
 export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
@@ -109,7 +109,7 @@ export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
                   {row.studentName}
                 </td>
                 <td className="py-3 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.hasSubmitted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.hasSubmitted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'}`}>
                     {row.hasSubmitted ? 'Sudah Mengerjakan' : 'Belum Mengerjakan'}
                   </span>
                 </td>
@@ -120,9 +120,16 @@ export function AssignmentReport({ assignmentId }: { assignmentId: string }) {
                         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                         : row.submissionStatus === 'LATE_APPROVED'
                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                        : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                        : row.submissionStatus === 'LATE'
+                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                        : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400'
                     }`}>
-                      {row.submissionStatus === 'ON_TIME' ? '✓ Tepat Waktu' : row.submissionStatus === 'LATE_APPROVED' ? '⚠ Disetujui Telat' : '✗ Terlambat'}
+                      {row.submissionStatus === 'ON_TIME' ? '✓ Tepat Waktu' : row.submissionStatus === 'LATE_APPROVED' ? '⚠ Disetujui Telat' : row.submissionStatus === 'LATE' ? '✗ Terlambat' : 'Belum Mengerjakan'}
+                    </span>
+                  )}
+                  {!row.hasSubmitted && (
+                    <span className="px-2 py-1 rounded-full text-xs font-bold bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+                      -
                     </span>
                   )}
                 </td>

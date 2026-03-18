@@ -9,6 +9,7 @@ import {
   Send, Loader2, User as UserIcon, Users, Search, MessageSquare,
   Paperclip, CheckCheck, Check, Image, FileText, Plus, X
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Contact = {
   id: string; name: string; email: string; role: string; avatar?: string | null;
@@ -99,7 +100,7 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
   };
 
   const handleFileUpload = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { alert("Ukuran file maksimal 10MB"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("Ukuran file maksimal 10MB"); return; }
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -113,7 +114,7 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
         setMessages((prev: any) => [...prev, msg]);
       }
     } catch (err: any) {
-      alert("Gagal upload: " + err.message);
+      toast.error("Gagal upload: " + err.message);
     } finally { setIsUploading(false); }
   };
 

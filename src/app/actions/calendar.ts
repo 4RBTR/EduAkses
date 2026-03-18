@@ -136,3 +136,56 @@ export async function getCalendarEvents() {
     recurringEvents: lessonEvents
   };
 }
+
+export async function updateSchedule(id: string, data: {
+  subject: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}) {
+  const session = await auth();
+  if (!session?.user?.id || (session.user.role !== "TEACHER" && session.user.role !== "CLASS_LEADER")) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    // Schedule update only allows changing these details for simplicity. To fully secure it we could check class membership but role serves as global RBAC here.
+    const scheduleId = id.replace("schedule-", "");
+    await prisma.lessonSchedule.update({
+      where: { id: scheduleId },
+      data
+    });
+
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/dashboard/calendar");
+    revalidatePath("/calendar");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update schedule:", error);
+    throw new Error("Failed to update schedule");
+  }
+}
+
+export async function deleteSchedule(id: string) {
+  const session = await auth();
+  if (!session?.user?.id || (session.user.role !== "TEACHER" && session.user.role !== "CLASS_LEADER")) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    const scheduleId = id.replace("schedule-", "");
+    await prisma.lessonSchedule.delete({
+      where: { id: scheduleId }
+    });
+
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/dashboard/calendar");
+    revalidatePath("/calendar");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete schedule:", error);
+    throw new Error("Failed to delete schedule");
+  }
+}
