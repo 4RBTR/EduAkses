@@ -154,9 +154,10 @@ const getMenuCategories = (role: Role): MenuCategory[] => {
 
 export function Sidebar({ role, isMobile }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([
-    "UTAMA", "KELAS & TUGAS", "KOMUNIKASI", "KOLABORASI", "PENGATURAN",
-  ]);
+  
+  // PERBAIKAN 1: Mengosongkan array ini agar semua kategori tertutup secara default saat web dibuka.
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  
   const pathname = usePathname();
   const categories = getMenuCategories(role);
 
@@ -199,7 +200,7 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3">
-        {categories.map((cat) => {
+        {categories.map((cat, index) => {
           const isExpanded = expandedCategories.includes(cat.category);
           const hasActiveItem = cat.items.some((item) => pathname === item.href);
 
@@ -234,7 +235,8 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
                   !isCollapsed && !isExpanded ? "max-h-0" : "max-h-[500px]"
                 )}
               >
-                <ul className={cn("space-y-0.5 px-2", !isCollapsed && "pt-0.5 pb-2")}>
+                {/* PERBAIKAN 2: Sesuaikan padding saat collapsed agar tidak terlalu rapat */}
+                <ul className={cn("space-y-0.5 px-2", isCollapsed ? "py-2" : "pt-0.5 pb-2")}>
                   {cat.items.map((item) => {
                     const isActive = pathname === item.href;
                     const Icon = item.icon;
@@ -271,9 +273,15 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
                 </ul>
               </div>
 
-              {/* Divider between categories (only when not collapsed) */}
-              {!isCollapsed && (
-                <div className="mx-3 border-t border-zinc-100 dark:border-zinc-800/60" />
+              {/* PERBAIKAN 3: Divider tetap dimunculkan walau collapsed, tapi marginnya disesuaikan 
+                  supaya membentuk pemisah antar grup icon. */}
+              {index < categories.length - 1 && (
+                <div 
+                  className={cn(
+                    "border-t border-zinc-100 dark:border-zinc-800/60",
+                    isCollapsed ? "mx-6 my-1" : "mx-3"
+                  )} 
+                />
               )}
             </div>
           );
@@ -285,7 +293,6 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
         <div className="px-3 pb-4 pt-2 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-600 text-xs cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
             onClick={() => {
-              // trigger command palette via custom event
               document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }));
             }}
           >
