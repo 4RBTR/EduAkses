@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { DeleteNotificationButton } from "@/components/dashboard/DeleteNotificationButton";
 import { DeleteScheduleButton } from "@/components/dashboard/DeleteScheduleButton";
+import { LeaderboardWidget } from "@/components/dashboard/LeaderboardWidget";
 
 export default async function StudentDashboard() {
   const session = await auth();
@@ -187,6 +188,11 @@ export default async function StudentDashboard() {
 
         {/* Learning Activity Sidebar */}
         <div className="space-y-6">
+           {/* Leaderboard Widget */}
+           {classes.length > 0 && (
+             <LeaderboardWidget classId={classes[0].id} />
+           )}
+
            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-500" />
               Papan Pengumuman

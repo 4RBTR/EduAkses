@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
   Calendar as CalendarIcon,
   Clock,
   BookOpen,
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { createPersonalEvent, updatePersonalEvent, deletePersonalEvent } from "@/app/dashboard/_actions/personal-events";
 import { updateSchedule, deleteSchedule } from "@/app/actions/calendar";
 import { useRouter } from "next/navigation";
+import { useGlobalEvents } from "@/hooks/useGlobalEvents";
 
 type CalendarEvent = {
   id: string;
@@ -39,7 +40,8 @@ interface CalendarProps {
   userRole?: string;
 }
 
-export default function Calendar({ fixedEvents, recurringEvents, userRole }: CalendarProps) {
+export default function Calendar({ fixedEvents: propFixedEvents, recurringEvents, userRole }: CalendarProps) {
+  const { events: globalEvents } = useGlobalEvents();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   
@@ -83,19 +85,32 @@ export default function Calendar({ fixedEvents, recurringEvents, userRole }: Cal
     // Days of current month
     for (let i = 1; i <= totalDays; i++) {
         const dateStr = new Date(year, month, i).toDateString();
-        const dailyFixed = fixedEvents.filter(e => new Date(e.date).toDateString() === dateStr);
+        const dailyFixed = propFixedEvents.filter((e: any) => new Date(e.date).toDateString() === dateStr);
+        
+        // Add global events for this day
+        const dailyGlobal = globalEvents
+          .filter((e: any) => e.time.toDateString() === dateStr)
+          .map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            type: e.type === "TASK" ? "ASSIGNMENT" : e.type as any,
+            date: e.time,
+            className: e.category,
+            classId: ""
+          }));
+
         const dayOfWeek = new Date(year, month, i).getDay();
-        const dailyRecurring = recurringEvents.filter(e => e.dayOfWeek === dayOfWeek);
+        const dailyRecurring = recurringEvents.filter((e: any) => e.dayOfWeek === dayOfWeek);
         
       calendarDays.push({ 
         day: i, 
         current: true,
-        events: [...dailyFixed, ...dailyRecurring]
+        events: [...dailyFixed, ...dailyGlobal, ...dailyRecurring]
       });
     }
 
     return calendarDays;
-  }, [year, month, fixedEvents, recurringEvents]);
+  }, [year, month, propFixedEvents, recurringEvents, globalEvents]);
 
   const typeStyles = {
     ASSIGNMENT: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200",
@@ -292,13 +307,13 @@ export default function Calendar({ fixedEvents, recurringEvents, userRole }: Cal
                         key={e.id}
                         onClick={() => setSelectedEvent(e)}
                         className={cn(
-                          "w-full text-left px-2 py-1 rounded-md text-[10px] font-bold border truncate hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5",
-                          typeStyles[e.type]
-                        )}
-                      >
-                        {typeIcons[e.type]}
-                        <span className="truncate">{e.title}</span>
-                      </button>
+                  "w-full text-left px-2 py-1 rounded-md text-[10px] font-bold border truncate transition-all active:scale-95 flex items-center gap-1.5",
+                  typeStyles[e.type as keyof typeof typeStyles]
+                )}
+              >
+                {typeIcons[e.type as keyof typeof typeIcons]}
+                <span className="truncate">{e.title}</span>
+              </button>
                     ))}
                   </div>
                 </div>

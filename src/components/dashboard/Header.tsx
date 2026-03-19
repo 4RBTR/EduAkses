@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User, Menu } from "lucide-react";
+import { LogOut, User, Menu, Search } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
@@ -30,6 +30,17 @@ export function Header({ user, onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Command Palette Hint */}
+        <button
+          onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }))}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-xs"
+          title="Buka Command Palette (Ctrl+K)"
+        >
+          <Search size={13} />
+          <span>Cari...</span>
+          <kbd className="bg-zinc-200 dark:bg-zinc-700 rounded px-1 py-0.5 text-[9px] font-mono">⌘K</kbd>
+        </button>
+
         {/* Theme Toggle */}
         <ThemeToggle />
 

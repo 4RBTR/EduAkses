@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,7 +8,384 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─── Enums ───────────────────────────────────────────────────────────
+model User {
+  id                String                @id @default(cuid())
+  name              String
+  email             String                @unique
+  password          String
+  role              Role                  @default(STUDENT)
+  avatar            String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  points            Int                   @default(0)
+  extensions        AssignmentExtension[]
+  assignments       Assignment[]          @relation("AssignmentCreator")
+  channel_messages  channel_messages[]
+  class_channels    class_channels[]
+  memberships       ClassMember[]
+  contributionVotes ContributionVote[]
+  contributions     Contribution[]        @relation("Uploader")
+  receivedDMs       DirectMessage[]       @relation("DMReceiver")
+  sentDMs           DirectMessage[]       @relation("DMSender")
+  groupMemberships  GroupMember[]
+  groupMessages     GroupMessage[]
+  personalEvents    PersonalEvent[]
+  receivedMessages  PriorityMessage[]     @relation("Receiver")
+  sentMessages      PriorityMessage[]     @relation("Sender")
+  quizScores        QuizScore[]
+  quizzes           Quiz[]                @relation("QuizCreator")
+  submissions       Submission[]
+  notifications     UserNotification[]
+  workspaceNotes    WorkspaceNote[]
+  picNotes          WorkspaceNote[]       @relation("NotePIC")
+
+  @@map("users")
+}
+
+model Class {
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  inviteCode      String           @unique @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  assignments     Assignment[]
+  class_channels  class_channels[]
+  members         ClassMember[]
+  contributions   Contribution[]
+  lessonSchedules LessonSchedule[]
+  notifications   Notification[]
+  quizzes         Quiz[]
+
+  @@map("classes")
+}
+
+model ClassMember {
+  id       String   @id @default(cuid())
+  role     Role     @default(STUDENT)
+  userId   String
+  classId  String
+  joinedAt DateTime @default(now())
+  class    Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
+  @@map("class_members")
+}
+
+model Assignment {
+  id          String                @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  classId     String
+  creatorId   String
+  fileUrl     String?
+  extensions  AssignmentExtension[]
+  class       Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  creator     User                  @relation("AssignmentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id               String           @id @default(cuid())
+  content          String?
+  fileUrl          String?
+  grade            Float?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  studentId        String
+  assignmentId     String
+  teacherComment   String?
+  submissionStatus SubmissionStatus @default(ON_TIME)
+  assignment       Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student          User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assignmentId])
+  @@map("submissions")
+}
+
+model Quiz {
+  id         String         @id @default(cuid())
+  title      String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  classId    String
+  creatorId  String
+  questions  QuizQuestion[]
+  quizScores QuizScore[]
+  class      Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  creator    User           @relation("QuizCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String     @id @default(cuid())
+  question      String
+  options       Json
+  correctAnswer String
+  difficulty    Difficulty @default(MEDIUM)
+  quizId        String
+  quiz          Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+model LessonSchedule {
+  id        String   @id @default(cuid())
+  subject   String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  classId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("lesson_schedules")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  title     String
+  message   String
+  createdAt DateTime  @default(now())
+  isRead    Boolean   @default(false)
+  classId   String
+  expiresAt DateTime?
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model UserNotification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_notifications")
+}
+
+model QuizScore {
+  id                   String   @id @default(cuid())
+  score                Int
+  createdAt            DateTime @default(now())
+  studentId            String
+  quizId               String
+  completionPercentage Float    @default(0)
+  correctAnswers       Int      @default(0)
+  incorrectAnswers     Int      @default(0)
+  quiz                 Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student              User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_scores")
+}
+
+model AssignmentExtension {
+  id           String          @id @default(cuid())
+  reason       String
+  status       ExtensionStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  studentId    String
+  assignmentId String
+  assignment   Assignment      @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assignmentId])
+  @@map("assignment_extensions")
+}
+
+model PriorityMessage {
+  id         String   @id @default(cuid())
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  senderId   String
+  receiverId String
+  receiver   User     @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("priority_messages")
+}
+
+model DirectMessage {
+  id             String   @id @default(cuid())
+  content        String?
+  attachmentUrl  String?
+  attachmentType String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  senderId       String
+  receiverId     String
+  receiver       User     @relation("DMReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender         User     @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("direct_messages")
+}
+
+model GroupChat {
+  id         String         @id @default(cuid())
+  name       String
+  createdAt  DateTime       @default(now())
+  creatorId  String
+  boardState BoardState?
+  members    GroupMember[]
+  messages   GroupMessage[]
+
+  @@map("group_chats")
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  joinedAt DateTime  @default(now())
+  group    GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model GroupMessage {
+  id             String    @id @default(cuid())
+  content        String?
+  attachmentUrl  String?
+  attachmentType String?
+  createdAt      DateTime  @default(now())
+  groupId        String
+  senderId       String
+  group          GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender         User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("group_messages")
+}
+
+model PersonalEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  color       String   @default("purple")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("personal_events")
+}
+
+model Contribution {
+  id          String             @id @default(cuid())
+  title       String
+  description String?
+  fileUrl     String
+  fileType    String             @default("document")
+  status      ExtensionStatus    @default(PENDING)
+  upvotes     Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  classId     String
+  uploaderId  String
+  votes       ContributionVote[]
+  class       Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  uploader    User               @relation("Uploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([classId, status, upvotes(sort: Desc)])
+  @@map("contributions")
+}
+
+model ContributionVote {
+  id             String       @id @default(cuid())
+  userId         String
+  contributionId String
+  contribution   Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contributionId])
+  @@map("contribution_votes")
+}
+
+model BoardState {
+  id        String    @id @default(cuid())
+  state     Json      @default("{}")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  groupId   String    @unique
+  group     GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("board_states")
+}
+
+model WorkspaceNote {
+  id           String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  title        String    @default("Untitled")
+  content      String?
+  coverUrl     String?
+  icon         String?
+  isPinned     Boolean   @default(false)
+  
+  // Notion-style Task Board fields
+  stage        String    @default("Backlog") // Backlog, Pra-Produksi, Produksi, Final
+  role         String    @default("Member")
+  activityType String    @default("Task") @map("activity_type")
+  startDate    DateTime? @db.Timestamptz(6) @map("start_date")
+  deadline     DateTime? @db.Timestamptz(6) @map("deadline")
+  
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  picId        String?   @map("pic_id")
+  pic          User?     @relation("NotePIC", fields: [picId], references: [id], onDelete: SetNull)
+
+  @@index([userId, updatedAt(sort: Desc)], map: "workspace_notes_userid_idx")
+  @@map("workspace_notes")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model channel_messages {
+  id             String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  content        String?
+  attachmentUrl  String?
+  attachmentType String?
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+  channelId      String
+  senderId       String
+  class_channels class_channels @relation(fields: [channelId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users          User           @relation(fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([channelId, createdAt(sort: Desc)], map: "channel_messages_channelid_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model class_channels {
+  id               String             @id @default(dbgenerated("(gen_random_uuid())::text"))
+  name             String
+  description      String?
+  classId          String
+  createdBy        String
+  createdAt        DateTime           @default(now()) @db.Timestamptz(6)
+  channel_messages channel_messages[]
+  classes          Class              @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users            User               @relation(fields: [createdBy], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
 
 enum Role {
   TEACHER
@@ -35,426 +409,4 @@ enum SubmissionStatus {
   ON_TIME
   LATE
   LATE_APPROVED
-}
-
-// ─── User ────────────────────────────────────────────────────────────
-
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(STUDENT)
-  avatar    String?
-  points    Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  memberships ClassMember[]
-  assignments Assignment[]          @relation("AssignmentCreator")
-  quizzes     Quiz[]                @relation("QuizCreator")
-  submissions Submission[]
-  quizScores  QuizScore[]
-  extensions  AssignmentExtension[]
-
-  sentMessages     PriorityMessage[] @relation("Sender")
-  receivedMessages PriorityMessage[] @relation("Receiver")
-  personalEvents   PersonalEvent[]
-
-  // New DM Relations
-  sentDMs     DirectMessage[] @relation("DMSender")
-  receivedDMs DirectMessage[] @relation("DMReceiver")
-
-  // Group chat
-  groupMemberships GroupMember[]
-  groupMessages    GroupMessage[]
-
-  // Notifications
-  notifications UserNotification[]
-
-  // Contributions
-  contributions     Contribution[]     @relation("Uploader")
-  contributionVotes ContributionVote[]
-
-  @@map("users")
-}
-
-// ─── Class ───────────────────────────────────────────────────────────
-
-model Class {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  inviteCode  String   @unique @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  members         ClassMember[]
-  assignments     Assignment[]
-  quizzes         Quiz[]
-  lessonSchedules LessonSchedule[]
-  notifications   Notification[]
-  contributions   Contribution[]
-
-  @@map("classes")
-}
-
-// ─── ClassMember (Join Table: User ↔ Class) ──────────────────────────
-
-model ClassMember {
-  id   String @id @default(cuid())
-  role Role   @default(STUDENT)
-
-  // Foreign keys
-  userId  String
-  classId String
-
-  // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-
-  joinedAt DateTime @default(now())
-
-  @@unique([userId, classId])
-  @@map("class_members")
-}
-
-// ─── Assignment ──────────────────────────────────────────────────────
-
-model Assignment {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  fileUrl     String?
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Foreign keys
-  classId   String
-  creatorId String
-
-  // Relations
-  class       Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
-  creator     User                  @relation("AssignmentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  submissions Submission[]
-  extensions  AssignmentExtension[]
-
-  @@map("assignments")
-}
-
-// ─── Submission ──────────────────────────────────────────────────────
-
-model Submission {
-  id               String           @id @default(cuid())
-  content          String?
-  fileUrl          String?
-  grade            Float?
-  teacherComment   String?
-  submissionStatus SubmissionStatus @default(ON_TIME)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  // Foreign keys
-  studentId    String
-  assignmentId String
-
-  // Relations
-  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, assignmentId])
-  @@map("submissions")
-}
-
-// ─── Quiz ────────────────────────────────────────────────────────────
-
-model Quiz {
-  id        String   @id @default(cuid())
-  title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Foreign keys
-  classId   String
-  creatorId String
-
-  // Relations
-  class      Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
-  creator    User           @relation("QuizCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  questions  QuizQuestion[]
-  quizScores QuizScore[]
-
-  @@map("quizzes")
-}
-
-// ─── QuizQuestion ────────────────────────────────────────────────────
-
-model QuizQuestion {
-  id            String     @id @default(cuid())
-  question      String
-  options       Json // Array of answer options, e.g. ["A", "B", "C", "D"]
-  correctAnswer String
-  difficulty    Difficulty @default(MEDIUM)
-
-  // Foreign keys
-  quizId String
-
-  // Relations
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-
-  @@map("quiz_questions")
-}
-
-// ─── LessonSchedule ─────────────────────────────────────────────────
-
-model LessonSchedule {
-  id        String @id @default(cuid())
-  subject   String
-  dayOfWeek Int // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  startTime String // Format: "HH:mm" (e.g. "08:00")
-  endTime   String // Format: "HH:mm" (e.g. "09:30")
-
-  // Foreign keys
-  classId String
-
-  // Relations
-  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("lesson_schedules")
-}
-
-// ─── Notification (Class-level broadcast) ───────────────────────────
-
-model Notification {
-  id        String   @id @default(cuid())
-  title     String
-  message   String
-  createdAt DateTime @default(now())
-
-  isRead    Boolean   @default(false)
-  expiresAt DateTime?
-
-  // Foreign keys
-  classId String
-
-  // Relations
-  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
-}
-
-// ─── UserNotification (Per-user notification) ────────────────────────
-
-model UserNotification {
-  id        String   @id @default(cuid())
-  title     String
-  message   String
-  type      String   @default("INFO") // INFO, MESSAGE, ASSIGNMENT, QUIZ
-  isRead    Boolean  @default(false)
-  link      String? // Clickable link e.g. /dashboard/chat
-  createdAt DateTime @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_notifications")
-}
-
-// ─── QuizScore ───────────────────────────────────────────────────────
-
-model QuizScore {
-  id                   String   @id @default(cuid())
-  score                Int
-  correctAnswers       Int      @default(0)
-  incorrectAnswers     Int      @default(0)
-  completionPercentage Float    @default(0)
-  createdAt            DateTime @default(now())
-
-  // Foreign keys
-  studentId String
-  quizId    String
-
-  // Relations
-  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  quiz    Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-
-  @@map("quiz_scores")
-}
-
-model AssignmentExtension {
-  id        String          @id @default(cuid())
-  reason    String
-  status    ExtensionStatus @default(PENDING)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-
-  // Foreign keys
-  studentId    String
-  assignmentId String
-
-  // Relations
-  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, assignmentId])
-  @@map("assignment_extensions")
-}
-
-// ─── PriorityMessage (Legacy: Teacher <-> Class Leader) ──────────────
-
-model PriorityMessage {
-  id        String   @id @default(cuid())
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  // Foreign keys
-  senderId   String
-  receiverId String
-
-  // Relations
-  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  @@map("priority_messages")
-}
-
-// ─── DirectMessage (All roles DM system) ─────────────────────────────
-
-model DirectMessage {
-  id             String   @id @default(cuid())
-  content        String?
-  attachmentUrl  String? // File/image attachment
-  attachmentType String? // "image" or "document"
-  isRead         Boolean  @default(false)
-  createdAt      DateTime @default(now())
-
-  senderId   String
-  receiverId String
-
-  sender   User @relation("DMSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("DMReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  @@map("direct_messages")
-}
-
-// ─── GroupChat ───────────────────────────────────────────────────────
-
-model GroupChat {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-
-  creatorId String
-
-  members    GroupMember[]
-  messages   GroupMessage[]
-  boardState BoardState?
-
-  @@map("group_chats")
-}
-
-model GroupMember {
-  id      String @id @default(cuid())
-  groupId String
-  userId  String
-
-  group GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  joinedAt DateTime @default(now())
-
-  @@unique([groupId, userId])
-  @@map("group_members")
-}
-
-model GroupMessage {
-  id             String   @id @default(cuid())
-  content        String?
-  attachmentUrl  String?
-  attachmentType String?
-  createdAt      DateTime @default(now())
-
-  groupId  String
-  senderId String
-
-  group  GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  sender User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@map("group_messages")
-}
-
-// ─── PersonalEvent ────────────────────────────────────────────────────
-
-model PersonalEvent {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  date        DateTime
-  startTime   String? // Optional, format "HH:mm"
-  endTime     String? // Optional, format "HH:mm"
-  color       String   @default("purple")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("personal_events")
-}
-
-// ─── Floating Scroll (Contributions) ─────────────────────────────────
-
-model Contribution {
-  id          String          @id @default(cuid())
-  title       String
-  description String?
-  fileUrl     String
-  fileType    String          @default("document") // e.g. pdf, image
-  status      ExtensionStatus @default(PENDING) // Re-using ExtensionStatus or maybe a generic one. Since PENDING/APPROVED/REJECTED fits moderation perfectly.
-  upvotes     Int             @default(0)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  classId    String
-  uploaderId String
-
-  class    Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
-  uploader User               @relation("Uploader", fields: [uploaderId], references: [id], onDelete: Cascade)
-  votes    ContributionVote[]
-
-  @@index([classId, status, upvotes(sort: Desc)])
-  @@map("contributions")
-}
-
-model ContributionVote {
-  id             String @id @default(cuid())
-  userId         String
-  contributionId String
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contribution Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, contributionId])
-  @@map("contribution_votes")
-}
-
-// ─── Infinite Orbit (Group Board) ────────────────────────────────────
-
-model BoardState {
-  id        String   @id @default(cuid())
-  state     Json     @default("{}") // Fabric.js / Canvas state
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  groupId String    @unique
-  group   GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@map("board_states")
 }
