@@ -13,7 +13,10 @@ import {
   ChevronRight,
   LogOut,
   BarChart3,
-  MessageSquare
+  MessageSquare,
+  Library,
+  Presentation,
+  Archive
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,6 +45,9 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
           { name: "Laporan", href: "/dashboard/teacher/reports", icon: BarChart3 },
           { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
+          { name: "Sumbangan Materi", href: "/dashboard/scroll", icon: Library },
+          { name: "Group Board", href: "/dashboard/board", icon: Presentation },
+          { name: "Library Digital", href: "/dashboard/archive", icon: Archive },
         ];
       case "CLASS_LEADER":
         return [
@@ -52,6 +58,9 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
           { name: "Kuis Adaptif", href: "/dashboard/quizzes", icon: Puzzle },
           { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
+          { name: "Sumbangan Materi", href: "/dashboard/scroll", icon: Library },
+          { name: "Group Board", href: "/dashboard/board", icon: Presentation },
+          { name: "Library Digital", href: "/dashboard/archive", icon: Archive },
         ];
       case "STUDENT":
       default:
@@ -62,6 +71,9 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
           { name: "Kuis Adaptif", href: "/dashboard/quizzes", icon: Puzzle },
           { name: "Chat", href: "/dashboard/chat", icon: MessageSquare },
           { name: "Zoomeet", href: "/dashboard/meet", icon: Video },
+          { name: "Sumbangan Materi", href: "/dashboard/scroll", icon: Library },
+          { name: "Group Board", href: "/dashboard/board", icon: Presentation },
+          { name: "Library Digital", href: "/dashboard/archive", icon: Archive },
         ];
     }
   };
