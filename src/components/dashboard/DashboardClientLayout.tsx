@@ -75,8 +75,16 @@ export function DashboardClientLayout({ children, user }: DashboardClientLayoutP
           onMenuClick={() => setIsMobileMenuOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 relative z-0">
-          <div className="mx-auto max-w-7xl">
+        <main className={cn(
+          "flex-1 relative z-0",
+          (pathname?.startsWith("/dashboard/chat") || pathname?.startsWith("/dashboard/workspace")) 
+            ? "overflow-hidden" 
+            : "overflow-y-auto p-4 md:p-6 pb-20 md:pb-6"
+        )}>
+          <div className={cn(
+            "mx-auto h-full",
+            (pathname?.startsWith("/dashboard/chat") || pathname?.startsWith("/dashboard/workspace")) ? "" : "max-w-7xl"
+          )}>
             {children}
           </div>
         </main>

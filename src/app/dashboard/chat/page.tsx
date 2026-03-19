@@ -30,7 +30,7 @@ export default async function ChatPage() {
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 h-[calc(100vh-9rem)] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="flex-1 min-h-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
         <ChatLayout
           currentUserId={session.user.id}
           currentUserName={session.user.name || "You"}

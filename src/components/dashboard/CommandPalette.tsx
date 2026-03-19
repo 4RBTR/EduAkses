@@ -59,13 +59,36 @@ const ALL_ROUTES: CommandItem[] = [
 ];
 
 function filterRoutesByRole(role: Role): CommandItem[] {
-  const teacherOnly = ["teacher", "teacher-assignments", "teacher-quizzes", "teacher-reports", "teacher-schedule"];
-  const leaderOnly = ["leader", "leader-schedule"];
-  const studentHidden = [...teacherOnly, ...leaderOnly];
-
-  if (role === "TEACHER") return ALL_ROUTES.filter((r) => !leaderOnly.includes(r.id));
-  if (role === "CLASS_LEADER") return ALL_ROUTES.filter((r) => !teacherOnly.includes(r.id));
-  return ALL_ROUTES.filter((r) => !studentHidden.includes(r.id));
+  return ALL_ROUTES.filter((r) => {
+    // Teacher can see everything except leader-specific dashboard
+    if (role === "TEACHER") {
+      return !["leader", "leader-schedule"].includes(r.id);
+    }
+    
+    // Class Leader can see common + leader items, but NO teacher reports/management
+    if (role === "CLASS_LEADER") {
+      const teacherOnly = [
+        "teacher", 
+        "teacher-assignments", 
+        "teacher-quizzes", 
+        "teacher-reports", 
+        "teacher-schedule"
+      ];
+      return !teacherOnly.includes(r.id);
+    }
+    
+    // Student can ONLY see student items
+    const nonStudent = [
+      "teacher", 
+      "teacher-assignments", 
+      "teacher-quizzes", 
+      "teacher-reports", 
+      "teacher-schedule",
+      "leader",
+      "leader-schedule"
+    ];
+    return !nonStudent.includes(r.id);
+  });
 }
 
 interface CommandPaletteProps {
