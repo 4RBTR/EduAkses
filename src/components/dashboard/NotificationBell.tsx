@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Bell, Check, CheckCheck, MessageSquare,
-  ClipboardList, Calendar, Info, Timer,
+  ClipboardList, Calendar, Info, Timer, Trash2
 } from "lucide-react";
-import { getUserNotifications, markAllNotificationsRead, markNotificationRead } from "@/app/dashboard/_actions/notifications";
+import { getUserNotifications, markAllNotificationsRead, markNotificationRead, deleteUserNotification, deleteAllUserNotifications } from "@/app/dashboard/_actions/notifications";
 import { useGlobalEvents } from "@/hooks/useGlobalEvents";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 type Notification = {
   id: string;
@@ -61,12 +63,13 @@ function CountdownTimer({ dueDate }: { dueDate: Date }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────
-export function NotificationBell() {
+export function NotificationBell({ currentUserId }: { currentUserId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { events } = useGlobalEvents();
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const seenNotifsRef = useRef<Set<string>>(new Set());
   const router = useRouter();
 
   const fetchNotifs = async () => {
@@ -75,11 +78,60 @@ export function NotificationBell() {
     setUnreadCount(notifData.filter((n) => !n.isRead).length);
   };
 
+  // Initial fetch + polling fallback (60s)
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 60_000); // Only for general notifications
+    const interval = setInterval(fetchNotifs, 60_000);
     return () => clearInterval(interval);
   }, []);
+
+  // ── Supabase Realtime: instant notification push ──
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const channel = supabase
+      .channel(`user-notifications-${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_notifications",
+          filter: `userId=eq.${currentUserId}`,
+        },
+        (payload) => {
+          const newNotif = payload.new as Notification;
+          
+          if (seenNotifsRef.current.has(newNotif.id)) return;
+          seenNotifsRef.current.add(newNotif.id);
+
+          const formatted: Notification = {
+            id: newNotif.id,
+            title: newNotif.title,
+            message: newNotif.message,
+            type: newNotif.type,
+            isRead: false,
+            link: newNotif.link ?? null,
+            createdAt: new Date(newNotif.createdAt),
+          };
+          setNotifications((prev) => {
+            if (prev.some((n) => n.id === formatted.id)) return prev;
+            return [formatted, ...prev].slice(0, 20);
+          });
+          setUnreadCount((prev) => prev + 1);
+          
+          // Show pop-up toast
+          toast(formatted.title, {
+            description: formatted.message,
+            duration: 4000,
+            icon: getIcon(formatted.type),
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUserId]);
 
   // Filter urgent events from global hook (less than 24h)
   const deadlines = useMemo(() => {
@@ -118,6 +170,38 @@ export function NotificationBell() {
     await markAllNotificationsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
+  };
+
+  const handleDeleteAll = async () => {
+    setNotifications([]);
+    setUnreadCount(0);
+    try {
+      await deleteAllUserNotifications();
+    } catch (error) {
+      console.error("Failed to delete all notifications", error);
+      toast.error("Gagal menghapus semua notifikasi");
+    }
+  };
+
+  const handleDeleteNotif = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevents handleRead from firing
+    
+    // Optimistic delete
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    
+    // Fix unread count if the deleted notif was unread
+    const notif = notifications.find((n) => n.id === id);
+    if (notif && !notif.isRead) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+
+    try {
+      await deleteUserNotification(id);
+    } catch (error) {
+      console.error("Failed to delete notification", error);
+      toast.error("Gagal menghapus notifikasi");
+      // Optionally rollback here if needed
+    }
   };
 
   const getIcon = (type: string) => {
@@ -160,14 +244,24 @@ export function NotificationBell() {
         <div className="absolute right-0 top-12 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
             <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">Notifikasi</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAll}
-                className="text-xs text-primary font-semibold hover:opacity-70 transition-opacity flex items-center gap-1"
-              >
-                <CheckCheck className="w-3 h-3" /> Tandai Semua
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAll}
+                  className="text-xs text-primary font-semibold hover:opacity-70 transition-opacity flex items-center gap-1"
+                >
+                  <CheckCheck className="w-3 h-3" /> Tandai Semua
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleDeleteAll}
+                  className="text-xs text-red-500 font-semibold hover:opacity-70 transition-opacity flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" /> Hapus Semua
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="max-h-[460px] overflow-y-auto">
@@ -213,18 +307,18 @@ export function NotificationBell() {
               </div>
             ) : (
               notifications.map((n) => (
-                <button
+                <div
                   key={n.id}
-                  onClick={() => handleRead(n)}
                   className={cn(
-                    "w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800",
+                    "w-full text-left px-4 py-3 flex items-start gap-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 group cursor-pointer",
                     !n.isRead && "bg-blue-50/50 dark:bg-blue-900/10"
                   )}
+                  onClick={() => handleRead(n)}
                 >
                   <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 mt-0.5">
                     {getIcon(n.type)}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-2">
                     <p className={cn("text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate", !n.isRead && "text-blue-800 dark:text-blue-200")}>
                       {n.title}
                     </p>
@@ -233,8 +327,19 @@ export function NotificationBell() {
                       {new Date(n.createdAt).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                  {!n.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
-                </button>
+                  
+                  <div className="flex flex-col items-center gap-2 mt-1 shrink-0">
+                    {!n.isRead && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                    
+                    <button 
+                      onClick={(e) => handleDeleteNotif(e, n.id)}
+                      className="p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      title="Hapus notifikasi"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               ))
             )}
           </div>

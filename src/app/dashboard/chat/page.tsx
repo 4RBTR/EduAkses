@@ -19,8 +19,8 @@ export default async function ChatPage() {
   ]);
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-500">
-      <div className="mb-4">
+    <div className="flex flex-col h-full p-4 lg:p-6 pb-0 lg:pb-0 animate-in fade-in duration-500">
+      <div className="mb-4 shrink-0">
         <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
           <MessageSquare className="w-7 h-7 text-primary" />
           Chat Terpadu
@@ -30,7 +30,7 @@ export default async function ChatPage() {
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="flex-1 min-h-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm mb-4 lg:mb-6">
         <ChatLayout
           currentUserId={session.user.id}
           currentUserName={session.user.name || "You"}

@@ -63,6 +63,35 @@ export async function createUserNotification(
   });
 }
 
+// ── Delete a specific user notification ──
+export async function deleteUserNotification(notificationId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Verify ownership before deleting
+  const notif = await db.userNotification.findUnique({
+    where: { id: notificationId },
+  });
+  
+  if (!notif || notif.userId !== session.user.id) {
+    throw new Error("Not found or unauthorized");
+  }
+
+  return db.userNotification.delete({
+    where: { id: notificationId },
+  });
+}
+
+// ── Delete all user notifications ──
+export async function deleteAllUserNotifications() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  return db.userNotification.deleteMany({
+    where: { userId: session.user.id },
+  });
+}
+
 // ── Get class-level notifications for current user ──
 export async function getClassNotifications() {
   const session = await auth();

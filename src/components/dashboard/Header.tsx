@@ -7,6 +7,7 @@ import { NotificationBell } from "./NotificationBell";
 
 interface HeaderProps {
   user: {
+    id?: string | null;
     name?: string | null;
     email?: string | null;
     role?: string;
@@ -45,7 +46,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
         <ThemeToggle />
 
         {/* Notification Bell */}
-        <NotificationBell />
+        <NotificationBell currentUserId={user.id ?? ""} />
 
         {/* Separator */}
         <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800" />

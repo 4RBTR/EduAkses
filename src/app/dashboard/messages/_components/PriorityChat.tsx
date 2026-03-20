@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { getPriorityContacts, getPriorityMessages, sendPriorityMessage } from "../_actions/priority-messages";
 import { Send, User as UserIcon, Loader2, Paperclip, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 interface Contact {
   id: string;
@@ -41,6 +42,39 @@ export function PriorityChat({ currentUserId }: { currentUserId: string }) {
     }
   }, [activeContact]);
 
+  // ── Supabase Realtime: instant priority message push ──
+  useEffect(() => {
+    if (!activeContact) return;
+    const contactId = activeContact.id;
+
+    const channel = supabase
+      .channel(`priority-dm-${currentUserId}-${contactId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "priority_messages",
+        },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          // Only add if relevant to this conversation
+          const isRelevant =
+            (newMsg.senderId === currentUserId && newMsg.receiverId === contactId) ||
+            (newMsg.senderId === contactId && newMsg.receiverId === currentUserId);
+          if (!isRelevant) return;
+
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, { ...newMsg, createdAt: new Date(newMsg.createdAt) }];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeContact?.id, currentUserId]);
+
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -52,7 +86,10 @@ export function PriorityChat({ currentUserId }: { currentUserId: string }) {
     setIsSending(true);
     try {
       const newMsg = await sendPriorityMessage(activeContact.id, inputText.trim());
-      setMessages(prev => [...prev, newMsg]);
+      setMessages(prev => {
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
       setInputText("");
     } catch (error) {
       console.error(error);

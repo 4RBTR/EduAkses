@@ -154,10 +154,10 @@ const getMenuCategories = (role: Role): MenuCategory[] => {
 
 export function Sidebar({ role, isMobile }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  
+
   // PERBAIKAN 1: Mengosongkan array ini agar semua kategori tertutup secara default saat web dibuka.
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  
+
   const pathname = usePathname();
   const categories = getMenuCategories(role);
 
@@ -276,11 +276,11 @@ export function Sidebar({ role, isMobile }: SidebarProps) {
               {/* PERBAIKAN 3: Divider tetap dimunculkan walau collapsed, tapi marginnya disesuaikan 
                   supaya membentuk pemisah antar grup icon. */}
               {index < categories.length - 1 && (
-                <div 
+                <div
                   className={cn(
                     "border-t border-zinc-100 dark:border-zinc-800/60",
                     isCollapsed ? "mx-6 my-1" : "mx-3"
-                  )} 
+                  )}
                 />
               )}
             </div>

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface DashboardClientLayoutProps {
   children: React.ReactNode;
   user: {
+    id?: string | null;
     name?: string | null;
     email?: string | null;
     role?: string;

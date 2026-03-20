@@ -249,11 +249,22 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
     try {
       if (activeContact) {
         const msg = await sendDM(activeContact.id, text) as BaseMsg;
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
       } else if (activeGroup) {
-        await sendGroupMessage(activeGroup.id, text);
+        const msg = await sendGroupMessage(activeGroup.id, text) as BaseMsg;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
       } else if (activeChannel) {
-        await sendChannelMessage(activeChannel.id, text);
+        const msg = await sendChannelMessage(activeChannel.id, text) as BaseMsg;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
       }
     } catch {
       toast.error("Gagal mengirim pesan");
@@ -303,32 +314,32 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
     const isMe = msg.sender.id === currentUserId;
     return (
       <div key={msg.id} className={cn(
-        "group flex w-full gap-3 px-4 py-1.5 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors",
-        isMe ? "bg-primary/5 dark:bg-primary/5" : ""
+        "group flex w-full gap-3 px-4 py-2 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors",
+        isMe ? "flex-row-reverse" : "flex-row"
       )}>
-        <div className="w-10 h-10 shrink-0 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500 border border-zinc-200 dark:border-zinc-700 mt-1">
+        <div className="w-8 h-8 shrink-0 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500 border border-zinc-200 dark:border-zinc-700 self-end mb-1">
           {msg.sender.name.charAt(0).toUpperCase()}
         </div>
         
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className={cn(
-              "text-sm font-bold truncate",
-              isMe ? "text-primary" : "text-zinc-900 dark:text-zinc-100"
-            )}>
+        <div className={cn(
+          "max-w-[75%] flex flex-col",
+          isMe ? "items-end" : "items-start"
+        )}>
+          <div className={cn(
+            "flex items-center gap-2 mb-1 px-1",
+            isMe ? "flex-row-reverse" : "flex-row"
+          )}>
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
               {msg.sender.name}
             </span>
-            <span className="text-[10px] text-zinc-400 font-medium">
-              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-            {isMe && (
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                {msg.isRead ? <CheckCheck size={12} className="text-blue-500" /> : <Check size={12} className="text-zinc-400" />}
-              </span>
-            )}
           </div>
 
-          <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed overflow-wrap-anywhere">
+          <div className={cn(
+            "relative px-4 py-2.5 text-sm leading-relaxed overflow-wrap-anywhere shadow-sm",
+            isMe 
+              ? "bg-indigo-600 text-white rounded-2xl rounded-br-sm" 
+              : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-bl-sm border border-zinc-100 dark:border-zinc-700"
+          )}>
             {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
             
             {msg.attachmentUrl && (
@@ -337,23 +348,45 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
                   <img 
                     src={msg.attachmentUrl} 
                     alt="attachment" 
-                    className="rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm cursor-zoom-in active:scale-95 transition-transform" 
+                    className="rounded-lg shadow-sm cursor-zoom-in active:scale-95 transition-transform" 
                     onClick={() => window.open(msg.attachmentUrl!, "_blank")} 
                   />
                 ) : (
                   <a href={msg.attachmentUrl} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-primary/50 transition-colors w-fit">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl border transition-colors w-fit",
+                      isMe 
+                        ? "bg-indigo-700/50 border-indigo-500 hover:bg-indigo-700 text-white" 
+                        : "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 hover:border-primary/50"
+                    )}>
+                    <div className={cn(
+                      "p-2 rounded-lg",
+                      isMe ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
+                    )}>
                       <FileText size={18} />
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Lampiran Dokumen</p>
-                      <p className="text-[10px] text-zinc-500">Klik untuk melihat file</p>
+                      <p className="text-xs font-bold">Lampiran Dokumen</p>
+                      <p className="text-[10px] opacity-80 mt-0.5">Klik untuk melihat file</p>
                     </div>
                   </a>
                 )}
               </div>
             )}
+            
+            <div className={cn(
+              "flex items-center gap-1 mt-1 font-medium",
+              isMe ? "justify-end text-indigo-200" : "justify-start text-zinc-400"
+            )}>
+              <span className="text-[10px]">
+                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              {isMe && (
+                <span>
+                  {msg.isRead ? <CheckCheck size={12} className="text-white" /> : <Check size={12} className="opacity-70" />}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
