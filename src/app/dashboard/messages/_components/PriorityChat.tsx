@@ -66,7 +66,9 @@ export function PriorityChat({ currentUserId }: { currentUserId: string }) {
 
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, { ...newMsg, createdAt: new Date(newMsg.createdAt) }];
+            const createdStr = newMsg.createdAt as unknown as string;
+            const dateObj = new Date(createdStr.endsWith('Z') || createdStr.includes('+') ? createdStr : createdStr + 'Z');
+            return [...prev, { ...newMsg, createdAt: dateObj }];
           });
         }
       )

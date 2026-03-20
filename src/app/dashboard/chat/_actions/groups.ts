@@ -97,6 +97,30 @@ export async function sendGroupMessage(
     },
   });
 
+  // Fetch group to get name and members
+  const group = await db.groupChat.findUnique({
+    where: { id: groupId },
+    select: { name: true }
+  });
+
+  if (group) {
+    const groupMembers = await db.groupMember.findMany({
+      where: { groupId, userId: { not: session.user.id } },
+      select: { userId: true }
+    });
+
+    if (groupMembers.length > 0) {
+      const notifications = groupMembers.map((member: any) => ({
+        title: `Pesan di Grup ${group.name}`,
+        message: `${session.user.name}: ${content ? content.substring(0, 45) : "📎 Mengirim file"}`,
+        type: "MESSAGE",
+        link: `/dashboard/chat`,
+        userId: member.userId,
+      }));
+      await db.userNotification.createMany({ data: notifications });
+    }
+  }
+
   revalidatePath("/dashboard/chat");
   return message;
 }

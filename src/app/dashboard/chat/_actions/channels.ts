@@ -68,6 +68,30 @@ export async function sendChannelMessage(
     },
   });
 
+  // Fetch channel to get classId
+  const channel = await db.class_channels.findUnique({
+    where: { id: channelId },
+    select: { classId: true, name: true }
+  });
+
+  if (channel) {
+    const classMembers = await prisma.classMember.findMany({
+      where: { classId: channel.classId, userId: { not: session.user.id } },
+      select: { userId: true }
+    });
+
+    if (classMembers.length > 0) {
+      const notifications = classMembers.map((member) => ({
+        title: `Pesan di #${channel.name}`,
+        message: `${session.user.name}: ${content ? content.substring(0, 45) : "📎 Mengirim file"}`,
+        type: "MESSAGE",
+        link: `/dashboard/chat`,
+        userId: member.userId,
+      }));
+      await db.userNotification.createMany({ data: notifications });
+    }
+  }
+
   revalidatePath("/dashboard/chat");
   
   return {

@@ -129,7 +129,7 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
             content: newMsg.content,
             attachmentUrl: newMsg.attachmentUrl,
             attachmentType: newMsg.attachmentType,
-            createdAt: new Date(newMsg.createdAt),
+            createdAt: new Date(newMsg.createdAt.endsWith('Z') || newMsg.createdAt.includes('+') ? newMsg.createdAt : newMsg.createdAt + 'Z'),
             sender: { id: newMsg.senderId, name: senderName, avatar: null },
           };
 
@@ -172,7 +172,7 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
             content: newMsg.content,
             attachmentUrl: newMsg.attachmentUrl,
             attachmentType: newMsg.attachmentType,
-            createdAt: new Date(newMsg.createdAt),
+            createdAt: new Date(newMsg.createdAt.endsWith('Z') || newMsg.createdAt.includes('+') ? newMsg.createdAt : newMsg.createdAt + 'Z'),
             sender: { id: newMsg.senderId, name: senderName, avatar: null },
           };
 
@@ -215,7 +215,7 @@ export function ChatLayout({ currentUserId, currentUserName, contacts, groups: g
             content: newMsg.content,
             attachmentUrl: newMsg.attachmentUrl,
             attachmentType: newMsg.attachmentType,
-            createdAt: new Date(newMsg.createdAt),
+            createdAt: new Date(newMsg.createdAt.endsWith('Z') || newMsg.createdAt.includes('+') ? newMsg.createdAt : newMsg.createdAt + 'Z'),
             sender: { id: newMsg.senderId, name: senderName, avatar: null },
           };
           setMessages((prev) => {

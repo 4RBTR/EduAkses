@@ -33,6 +33,16 @@ export async function sendPriorityMessage(receiverId: string, content: string) {
     }
   });
 
+  await prisma.userNotification.create({
+    data: {
+      title: `Pesan Prioritas dari ${session.user.name}`,
+      message: content ? content.substring(0, 60) : "Mengirim pesan prioritas",
+      type: "MESSAGE",
+      link: `/dashboard/messages`,
+      userId: receiverId,
+    },
+  });
+
   revalidatePath("/dashboard/messages");
   return message;
 }

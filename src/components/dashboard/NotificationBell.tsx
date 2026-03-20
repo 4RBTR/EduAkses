@@ -105,6 +105,9 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
           if (seenNotifsRef.current.has(newNotif.id)) return;
           seenNotifsRef.current.add(newNotif.id);
 
+          const createdStr = newNotif.createdAt as unknown as string;
+          const dateObj = new Date(createdStr.endsWith('Z') || createdStr.includes('+') ? createdStr : createdStr + 'Z');
+
           const formatted: Notification = {
             id: newNotif.id,
             title: newNotif.title,
@@ -112,7 +115,7 @@ export function NotificationBell({ currentUserId }: { currentUserId: string }) {
             type: newNotif.type,
             isRead: false,
             link: newNotif.link ?? null,
-            createdAt: new Date(newNotif.createdAt),
+            createdAt: dateObj,
           };
           setNotifications((prev) => {
             if (prev.some((n) => n.id === formatted.id)) return prev;
