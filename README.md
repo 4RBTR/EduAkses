@@ -1,4 +1,4 @@
-![EduAkses Banner](file:///C:/Users/LOQ%2011/.gemini/antigravity/brain/25c8151e-8c07-4b35-8471-3dddecf5fef2/eduakses_banner_1776927577515.png)
+
 
 # 🎓 EduAkses: The Unified Learning Ecosystem
 > **"Empowering Inclusive, Adaptive, and Seamless Education for Everyone."**
